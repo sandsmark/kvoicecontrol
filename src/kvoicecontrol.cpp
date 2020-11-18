@@ -14,12 +14,11 @@
 #include <qfile.h>
 #include <qdir.h>
 
-#include "../config.h"
 #include "docking.h"
 
 #include "kvoicecontrol.moc"
 
-#include <iostream.h>
+#include <iostream>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -31,6 +30,7 @@ KVoiceControl *kvoicecontrol;
 DockWidget    *dock_widget;
 QString       lockFile;
 
+using std::cerr;
 
 bool createLockFile(QFile *file)
 {

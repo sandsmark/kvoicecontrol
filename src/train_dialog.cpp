@@ -17,7 +17,7 @@
 #include <qtstream.h>
 #include <qmsgbox.h>
 
-#include <iostream.h>
+#include <iostream>
 
 #include "preprocessing.h"
 #include "buffer.h"

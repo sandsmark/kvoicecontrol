@@ -18,7 +18,7 @@
 
 #include "speakermodel.moc"
 
-#include<iostream.h>
+#include<iostream>
 
 #include "reference.h"
 #include "reference_editor.h"
@@ -31,6 +31,8 @@
 #include "docking.h"
 #include "kvoicecontrol.h"
 extern DockWidget *dock_widget;
+
+using std::cerr;
 
 SpeakerModel::SpeakerModel(KConfig *config, 
 			   QWidget *parent, const char *name) : QWidget( parent, name )
@@ -361,7 +363,7 @@ QString SpeakerModel::test_command(QString command, QString command_name)
    start = command.find(command_name, 0, FALSE);
 
    if (start < 0) 
-     return(NULL);			  // ***** given command not found
+     return "";			  // ***** given command not found
    
    if (start > 1) 
      execute_command(command.left(start));	  // ***** if other commands should be executed before

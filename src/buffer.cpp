@@ -22,7 +22,7 @@
 #include <qlabel.h>
 #include <qstring.h>
 
-#include <iostream.h>
+#include <iostream>
 
 #include <klocale.h>
 

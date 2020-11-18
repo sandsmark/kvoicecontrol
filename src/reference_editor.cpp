@@ -16,7 +16,7 @@
 #include <qfiledlg.h>
 #include <qcolor.h>
 
-#include <iostream.h>
+#include <iostream>
 
 #include "preprocessing.h"
 #include "buffer.h"

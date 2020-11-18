@@ -13,7 +13,7 @@
 
 #include <kapp.h>
 
-#include <iostream.h>
+#include <iostream>
 
 #define UNENDLISCH 10000000
 #define RAND       6
