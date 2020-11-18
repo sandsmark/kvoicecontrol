@@ -1,0 +1,20 @@
+================================================================================
+
+This program is maintained by Daniel Kiecza <daniel@kiecza.de>
+
+================================================================================
+
+Thanks to all those people who send me comments on the program. I especially 
+appreciate the constructive criticism that I receive. A special thank you goes to
+
+Gerd Knorr <kraxel@goldbach.in-berlin.de> (Author of krecord)
+some sound driver's didn't show mic level properly in calibration dialog.
+This should be fixed now thanks to Gerd's help!
+
+Marcus <Suran@gmx.net>
+utterance lists can be organized in a tree structure now (release 0.16).
+This allows for creating a simple "grammar structure"!
+
+Andreas F. Pour <pour@mieterra.com>
+several patch contributions and constant constructive criticism.
+

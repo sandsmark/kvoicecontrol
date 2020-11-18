@@ -1,0 +1,94 @@
+/****************************************************************************
+** TrainDialog meta object code from reading C++ file 'train_dialog.h'
+**
+** Created: Sat Jan 2 03:18:51 1999
+**      by: The Qt Meta Object Compiler ($Revision: 2.25.2.11 $)
+**
+** WARNING! All changes made in this file will be lost!
+*****************************************************************************/
+
+#if !defined(Q_MOC_OUTPUT_REVISION)
+#define Q_MOC_OUTPUT_REVISION 2
+#elif Q_MOC_OUTPUT_REVISION != 2
+#error "Moc format conflict - please regenerate all moc files"
+#endif
+
+#include "train_dialog.h"
+#include <qmetaobject.h>
+
+
+const char *TrainDialog::className() const
+{
+    return "TrainDialog";
+}
+
+QMetaObject *TrainDialog::metaObj = 0;
+
+
+#if QT_VERSION >= 200
+static QMetaObjectInit init_TrainDialog(&TrainDialog::staticMetaObject);
+
+#endif
+
+void TrainDialog::initMetaObject()
+{
+    if ( metaObj )
+	return;
+    if ( strcmp(QDialog::className(), "QDialog") != 0 )
+	badSuperclassWarning("TrainDialog","QDialog");
+
+#if QT_VERSION >= 200
+    staticMetaObject();
+}
+
+void TrainDialog::staticMetaObject()
+{
+    if ( metaObj )
+	return;
+    QDialog::staticMetaObject();
+#else
+
+    QDialog::initMetaObject();
+#endif
+
+    typedef void(TrainDialog::*m1_t0)();
+    typedef void(TrainDialog::*m1_t1)();
+    typedef void(TrainDialog::*m1_t2)();
+    typedef void(TrainDialog::*m1_t3)();
+    typedef void(TrainDialog::*m1_t4)();
+    typedef void(TrainDialog::*m1_t5)();
+    typedef void(TrainDialog::*m1_t6)();
+    typedef void(TrainDialog::*m1_t7)();
+    typedef void(TrainDialog::*m1_t8)();
+    m1_t0 v1_0 = &TrainDialog::stop_recording;
+    m1_t1 v1_1 = &TrainDialog::delete_sample;
+    m1_t2 v1_2 = &TrainDialog::my_accept;
+    m1_t3 v1_3 = &TrainDialog::my_reject;
+    m1_t4 v1_4 = &TrainDialog::navigate_begin;
+    m1_t5 v1_5 = &TrainDialog::navigate_left;
+    m1_t6 v1_6 = &TrainDialog::navigate_entry;
+    m1_t7 v1_7 = &TrainDialog::navigate_right;
+    m1_t8 v1_8 = &TrainDialog::navigate_end;
+    QMetaData *slot_tbl = new QMetaData[9];
+    slot_tbl[0].name = "stop_recording()";
+    slot_tbl[1].name = "delete_sample()";
+    slot_tbl[2].name = "my_accept()";
+    slot_tbl[3].name = "my_reject()";
+    slot_tbl[4].name = "navigate_begin()";
+    slot_tbl[5].name = "navigate_left()";
+    slot_tbl[6].name = "navigate_entry()";
+    slot_tbl[7].name = "navigate_right()";
+    slot_tbl[8].name = "navigate_end()";
+    slot_tbl[0].ptr = *((QMember*)&v1_0);
+    slot_tbl[1].ptr = *((QMember*)&v1_1);
+    slot_tbl[2].ptr = *((QMember*)&v1_2);
+    slot_tbl[3].ptr = *((QMember*)&v1_3);
+    slot_tbl[4].ptr = *((QMember*)&v1_4);
+    slot_tbl[5].ptr = *((QMember*)&v1_5);
+    slot_tbl[6].ptr = *((QMember*)&v1_6);
+    slot_tbl[7].ptr = *((QMember*)&v1_7);
+    slot_tbl[8].ptr = *((QMember*)&v1_8);
+    metaObj = new QMetaObject( "TrainDialog", "QDialog",
+	slot_tbl, 9,
+	0, 0 );
+}

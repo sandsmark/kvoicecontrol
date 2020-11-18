@@ -1,0 +1,90 @@
+================================================================================
+KVoiceControl FAQ                                   Wed Jan 20 23:39:15 EST 1999
+================================================================================
+
+
+1. I need a non-KDE version of KVoiceControl! Where do I get that?
+
+2. I want to calibrate my microphone. But KVoiceControl does not display any
+   level number for the silence level?!
+
+
+================================================================================
+
+1. I need a non-KDE version of KVoiceControl! Where do I get that?
+
+   "Unfortunately" the Qt/KDE libs are extensively used within KVoiceControl. 
+   That means it would be a good pile of work to have a non-KDE version!
+   The problem is that I do not have the time to do that! But if anyone is 
+   interested in separating the program into a non-KDE recognizer core and a 
+   KDE-frontend he or she is really welcome to do so!
+
+================================================================================
+
+2. I want to calibrate my microphone. But KVoiceControl does not display any
+   level number for the silence level?!
+
+   First of all make sure that the sound card is installed properly!
+   (refer to the Sound FAQ therefore)
+
+   A quick and easy check is to enter the following command in a shell
+
+    cat /dev/sndstat
+
+   If you see something like
+ 
+    cat: /dev/sndstat: Operation not supported by device
+
+   your sound card is definitively not properly installed!
+
+   Output similar to the following indicates that the sound card should work:
+
+   -----------------------------------------------------------------------------
+   Card config: 
+   SoundBlaster at 0x220 irq 7 drq 1
+   OPL-2/OPL-3 FM at 0x388
+   
+   Audio devices:
+   0: Sound Blaster Pro (8 BIT ONLY) (3.1)
+   
+   Synth devices:
+   0: Yamaha OPL-3
+   
+   Midi devices:
+   0: Sound Blaster
+   
+   Timers:
+   0: System clock
+   
+   Mixers:
+   0: Sound Blaster
+   -----------------------------------------------------------------------------
+
+   Next to make sure that your microphone (make sure you HAVE one and 
+   connected it to the right place ;-) ) serves you well you can try to make a 
+   quick raw recording: (refer to KVoiceControl's README file on how to set the 
+   permissions of the microphone device file correctly!)
+
+   Start the recording in a command shell this way
+
+     dd if=/dev/dsp of=example.raw bs=8192 count=100
+
+   Let it record for a few seconds then interrupt it using Ctrl-c.
+   Now you can "send" the raw recorded stuff back to the audio device:
+  
+     cat example.raw > /dev/dsp
+
+   If you can hear the recorded stuff then you are sure that your sound card (incl.
+   the microphone) works! If not, oops! (contact me)
+
+   --------------------------------------------------------------------------------
+   IMPORTANT:
+   Up to release 0.16 the "no level is displayed" problem could also be caused
+   (with certain sound driver's and sound cards) by a bug in the sound related code.
+   This bug should have been removed with release 0.17 !
+   --------------------------------------------------------------------------------
+
+   DON'T FORGET TO ADJUST THE MICROPHONE LEVEL WITH A MIXER PROGRAM BEFORE YOU 
+   START THE RECORDING TEST !!!
+
+================================================================================

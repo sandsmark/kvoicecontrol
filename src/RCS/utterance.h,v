@@ -1,0 +1,89 @@
+head	1.2;
+access;
+symbols
+	beforeConnectedTry:1.1
+	branchAndBound:1.1
+	dockingToPanelNow:1.1;
+locks; strict;
+comment	@ * @;
+
+
+1.2
+date	99.01.02.08.14.09;	author kiecza;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	98.04.26.15.51.46;	author daniel;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@removed RCS log history from file header
+@
+text
+@/*********************************************************************************
+ *
+ * $Id: utterance.h,v 1.1 1998/04/26 15:51:46 daniel Exp kiecza $
+ *
+ *********************************************************************************/
+
+#ifndef UTTERANCE_H
+#define UTTERANCE_H
+
+#include <qdstream.h> 
+#include <qobject.h>
+
+
+class Utterance : public QObject
+{
+  Q_OBJECT
+
+public:
+
+  Utterance();
+  Utterance(float **, int);
+  ~Utterance();
+
+  void set_data(float **, int);
+  void set_data(int, int, float);
+  float **get_data();
+  float get_data(int, int) const;
+
+  float *operator[](int) const;
+
+  void set_size(int);
+  const int get_size() const { return (size);};
+  
+private:
+
+  float **data;
+  int size;
+};
+
+
+QDataStream& operator<<(QDataStream& , const Utterance *);
+QDataStream& operator>>(QDataStream& , Utterance *);
+
+#endif
+
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d3 1
+a3 3
+ * $Id: $
+ *
+ * $Log: $
+@

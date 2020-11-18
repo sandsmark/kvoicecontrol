@@ -1,0 +1,82 @@
+/****************************************************************************
+** ReferenceEditor meta object code from reading C++ file 'reference_editor.h'
+**
+** Created: Fri Jan 29 20:14:52 1999
+**      by: The Qt Meta Object Compiler ($Revision: 2.25.2.11 $)
+**
+** WARNING! All changes made in this file will be lost!
+*****************************************************************************/
+
+#if !defined(Q_MOC_OUTPUT_REVISION)
+#define Q_MOC_OUTPUT_REVISION 2
+#elif Q_MOC_OUTPUT_REVISION != 2
+#error "Moc format conflict - please regenerate all moc files"
+#endif
+
+#include "reference_editor.h"
+#include <qmetaobject.h>
+
+
+const char *ReferenceEditor::className() const
+{
+    return "ReferenceEditor";
+}
+
+QMetaObject *ReferenceEditor::metaObj = 0;
+
+
+#if QT_VERSION >= 200
+static QMetaObjectInit init_ReferenceEditor(&ReferenceEditor::staticMetaObject);
+
+#endif
+
+void ReferenceEditor::initMetaObject()
+{
+    if ( metaObj )
+	return;
+    if ( strcmp(QDialog::className(), "QDialog") != 0 )
+	badSuperclassWarning("ReferenceEditor","QDialog");
+
+#if QT_VERSION >= 200
+    staticMetaObject();
+}
+
+void ReferenceEditor::staticMetaObject()
+{
+    if ( metaObj )
+	return;
+    QDialog::staticMetaObject();
+#else
+
+    QDialog::initMetaObject();
+#endif
+
+    typedef void(ReferenceEditor::*m1_t0)();
+    typedef void(ReferenceEditor::*m1_t1)();
+    typedef void(ReferenceEditor::*m1_t2)();
+    typedef void(ReferenceEditor::*m1_t3)();
+    typedef void(ReferenceEditor::*m1_t4)();
+    typedef void(ReferenceEditor::*m1_t5)();
+    m1_t0 v1_0 = &ReferenceEditor::stop_recording;
+    m1_t1 v1_1 = &ReferenceEditor::delete_sample;
+    m1_t2 v1_2 = &ReferenceEditor::my_accept;
+    m1_t3 v1_3 = &ReferenceEditor::switch_autorecording;
+    m1_t4 v1_4 = &ReferenceEditor::disable_autorecording;
+    m1_t5 v1_5 = &ReferenceEditor::browse_command;
+    QMetaData *slot_tbl = new QMetaData[6];
+    slot_tbl[0].name = "stop_recording()";
+    slot_tbl[1].name = "delete_sample()";
+    slot_tbl[2].name = "my_accept()";
+    slot_tbl[3].name = "switch_autorecording()";
+    slot_tbl[4].name = "disable_autorecording()";
+    slot_tbl[5].name = "browse_command()";
+    slot_tbl[0].ptr = *((QMember*)&v1_0);
+    slot_tbl[1].ptr = *((QMember*)&v1_1);
+    slot_tbl[2].ptr = *((QMember*)&v1_2);
+    slot_tbl[3].ptr = *((QMember*)&v1_3);
+    slot_tbl[4].ptr = *((QMember*)&v1_4);
+    slot_tbl[5].ptr = *((QMember*)&v1_5);
+    metaObj = new QMetaObject( "ReferenceEditor", "QDialog",
+	slot_tbl, 6,
+	0, 0 );
+}

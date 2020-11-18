@@ -1,0 +1,9 @@
+# KDE Config File
+[KDE Desktop Entry]
+Type=Application
+Icon=
+Exec=kvoicecontrol
+DocPath=kvoicecontrol/index.html
+Comment=KVoiceControl - enter commands by voice
+Comment[de]=KVoiceControl - sprachgesteuerte Befehlseingabe
+Name=KVoiceControl

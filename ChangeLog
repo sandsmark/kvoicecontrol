@@ -1,0 +1,252 @@
+Wed Apr 21 22:03:02 1999  Daniel Kiecza  <kiecza@yunnan>
+
+    * src/soundcard.cpp, src/soundcard.h:
+    some sound driver's didn't show mic level properly in calibration dialog.
+    This should be fixed now (some changes in method open_dev)!
+
+Sat Jan 30 01:13:19 1999  Daniel Kiecza  <kiecza@yunnan>
+
+    * src/speakermodel.cpp, src/speakermodel.h:
+    introduced several new special commands that allow for simple tree structured grammars.
+    The tag @ forces commands to be executed in detect_mode_off-state
+
+    * src/reference_editor.cpp, src/reference_editor.h:
+    added file browser, can be used to insert a command conveniently.
+
+    switch_button's background is red now while KVoiceControl is listening to the microphone!
+
+Sat Jan  2 21:45:19 1999  Daniel Kiecza  <kiecza@yunnan>
+
+    * src/kvoicecontrol.cpp:
+    use ../config.h instead of version.h to hold central release number
+
+    * src/kvoicecontrol.cpp:
+    use QFile::remove instead of system() call to "rm" to remove unwanted lock files
+
+    * src/buffer.h, src/docking.h, src/kvoicecontrol.h, src/options.h, src/preprocessing.h, src/realfftf.h, src/reference.h, src/reference_editor.h, src/soundcard.h, src/score.h, src/speakermodel.h, src/train_dialog.h, src/utterance.h, src/reference.cpp, src/preprocessing.cpp, src/options.cpp, src/docking.cpp, src/buffer.cpp, src/reference_editor.cpp, src/score.cpp, src/soundcard.cpp, src/speakermodel.cpp, src/train_dialog.cpp, src/utterance.cpp:
+    removed RCS log history from file header
+
+    * src/buffer.cpp: is_detect_mode corrrected
+
+    * src/kvoicecontrol.cpp:
+    lock file mechanism moved from /var/lock to globalKapp->localkdedir()
+
+    version in dialog box "about" is now retrieved from central version file "version.h"
+
+    RCS log history removed from file header
+
+Thu Dec 17 02:06:47 1998  Daniel Kiecza  <kiecza@yunnan>
+
+    * src/reference_editor.cpp: removed some debug output
+
+    * src/buffer.cpp, src/buffer.h:
+    new method is_detect_mode() tells whether the buffer is in autorecording mode
+
+    * src/reference_editor.h, src/reference_editor.cpp:
+    autorecording can now be control by a newly introduced button!
+
+    * src/kvoicecontrol.cpp:
+    use a lock-file /var/lock/kvoicecontrol.pid to ensure that only one instance of
+    KVoiceControl is launched at a time!
+
+Wed Nov  4 22:24:40 1998  daniel  <daniel@yunnan>
+
+    * src/soundcard.cpp:
+    added "stat = STATUS_CLOSED;" to constructor to have a well-defined
+    initial status! (Hint from and thanks to Stefan Westerfeld <stefan@space.twc.de>)
+
+Mon Oct 26 10:09:58 1998  daniel  <daniel@yunnan>
+
+    * src/kvoicecontrol.cpp: version++ 0.11 -> 0.12
+
+Sat Sep 26 08:06:41 1998  daniel  <daniel@yunnan>
+
+    * src/speakermodel.cpp:
+    main window caption changed from "speakermodel.spk" to "KVoiceControl: speakermodel.spk"
+
+Fri Sep 25 19:24:27 1998  daniel  <daniel@yunnan>
+
+    * src/kvoicecontrol.cpp: version++ 0.1 -> 0.11
+
+    * src/preprocessing.cpp: Initial revision
+
+Sun Jun 14 13:23:24 1998  daniel  <daniel@yunnan>
+
+    * src/kvoicecontrol.cpp: version++ 0.09 -> 0.1
+
+    * src/buffer.cpp, src/buffer.h:
+    stop_level calibration has to be done by the user by adjusting MIC IN within kmix!
+
+    * src/speakermodel.cpp:
+    switch off detect_mode before calling calibrate_micro
+
+Tue Jun  2 10:33:54 1998  daniel  <daniel@yunnan>
+
+    * src/buffer.cpp, src/buffer.h, src/speakermodel.cpp, src/speakermodel.h:
+    microphone calibration added
+
+    * src/kvoicecontrol.cpp: microphone calibration menu entry added
+
+    * src/calibrate.h: Initial revision
+
+Tue May  5 11:16:51 1998  daniel  <daniel@yunnan>
+
+    * src/speakermodel.cpp, src/speakermodel.h: <import speakerfile> added
+
+    * src/kvoicecontrol.cpp: import speakerfile added to speakermodel.[cpp|h]
+
+Fri May  1 21:44:21 1998  daniel  <daniel@yunnan>
+
+    * src/kvoicecontrol.cpp: version++ 0.06 -> 0.09
+
+    * src/speakermodel.cpp: removed debugging output
+
+    * src/kvoicecontrol.cpp:
+    constructor accepts speakerfile name now (that was extracted from the command line)
+    if specified, speakerfile is loaded and recognition mode is entered!
+    TrainDialog now accessible via Options menu
+
+    * src/kvoicecontrol.h:
+    constructor accepts speakerfile name now (that was extracted from the command line)
+
+    * src/speakermodel.cpp: TrainDialog introduced ....
+    changed some recognizer default values
+    can now specify speakerfile at startup time .... enter hidden/recognition-mode then!
+
+    * src/speakermodel.h:
+    TrainDialog introduced (for training commands extracted from a file)
+
+    * src/train_dialog.cpp, src/train_dialog.h: Initial revision
+
+    * src/score.cpp: using new default values!
+
+Thu Apr 30 15:46:21 1998  daniel  <daniel@yunnan>
+
+    * src/speakermodel.cpp: unimportant modifications ...
+
+    * src/score.cpp:
+    skip those utterances, that are too short/long in relation to the test utterance and
+    thus CANNOT be aligned successfully (due to slope and adjustment window constraints)
+
+Wed Apr 29 23:13:29 1998  daniel  <daniel@yunnan>
+
+    * src/kvoicecontrol.cpp: version++ 0.03 -> 0.06
+
+    * src/score.cpp: removed some debugging-cerr's
+
+    * src/score.cpp:
+    all scoring done within this class, as one could expect !!! ;-)
+    introduced Branch&Bound-scoring; fast as HELL!!
+    NOTE: if you want to use the old score-routine, remove comments around DTW_matrix con-/destruction
+
+    * src/score.h:
+    all scoring done within this class, as one could expect !!! ;-)
+    introduced Branch&Bound-scoring; fast as HELL!!
+
+    * src/speakermodel.cpp:
+    min_distance moved to score now (all scoring is done within score now, as it should be done)
+    now calling branch&bound scoring - MUCH faster!
+
+    * src/speakermodel.h:
+    min_distance moved to score now (all scoring is done within score now, as it should be done)
+
+    * src/speakermodel.cpp: nothing important
+
+    * src/docking.cpp:
+    Oops, it was hard to insert the RCS-Header to the right position,
+    put it between the '#' and the 'i' of the first #include      ;-)
+
+    * src/kvoicecontrol.cpp:
+    KVoiceControl *kvoicecontrol  ... is global now (needed by DockWidget)
+    DockWidget introduced
+    tiny_mode stuff removed !
+    closeEvent() method needed for interaction with DockWidget
+
+    * src/kvoicecontrol.h: tiny_mode removed !
+    closeEvent introduced for proper interaction with DockWidget!
+
+    * src/speakermodel.cpp: tiny_mode removed -> now using docking to panel!!!
+    DockWidget introduced that shows two leds on the Panel indicating the
+    recognizers state ...
+    LED lamps removed (moved onto docking_widget infact)
+    #include's moved from header-file to this file as far as possible ->
+      in speakermodel.h just keep class definitions (e.g. class SoundBuffer;)
+    detect_mode_on/off are now only executed when really toggling mode!
+     (not always)
+
+    * src/speakermodel.h: tiny_mode removed -> now using docking to panel!!!
+    LED lamps removed (moved onto docking_widget infact)
+    #include's moved to speakermodel.cpp as far as possible ->
+      in speakermodel.h just keep class definitions (e.g. class SoundBuffer;)
+
+    * src/docking.cpp, src/docking.h: Initial revision
+
+    * src/buffer.h, src/buffer.cpp:
+    record(), play() and detect_speech() return bool now instead of void
+
+Tue Apr 28 11:20:55 1998  daniel  <daniel@yunnan>
+
+    * src/score.h, src/score.cpp:
+    score_threshold moved from speakermodel to this class
+    we are doing online rejection now! -> performance improvement!
+
+    * src/speakermodel.cpp, src/speakermodel.h:
+    score_threshold moved to class Score now -> online rejection!
+
+    * src/kvoicecontrol.cpp: led_recognition working correctly now!
+
+    * src/speakermodel.h:
+    LED timer introduced and kapp.h included to enforce event handling during
+    scoring process (Xflush etc.)
+
+Mon Apr 27 23:58:58 1998  daniel  <daniel@yunnan>
+
+    * src/speakermodel.cpp: led_recognition working correctly now!
+
+    * src/score.cpp: several
+      KApplication::flushX();
+      kapp->processEvents();
+    included to ensure correct displaying of LEDLamps
+
+    * src/buffer.cpp: removed printf output "recording ... done"
+
+    * src/kvoicecontrol.cpp, src/kvoicecontrol.h, src/speakermodel.h, src/speakermodel.cpp:
+    led_record and led_recognition added
+    led_recognition not yet working correctly!
+    tiny mode added (can be used during recognition mode; just displays the two LEDs)
+
+    * src/buffer.h, src/buffer.cpp:
+    now emitting new signal recording_active, used for LED-control
+
+    * src/speakermodel.cpp: detect_mode_off works fine now
+    options dialog implemented
+    save_config methode introduced (not yet working properly!!)
+
+    * src/speakermodel.h: save_config introduced
+    options dialog implemented
+
+    * src/reference_editor.cpp:
+    did some code cleaning, so that sound replaying works fine now!
+
+    * src/kvoicecontrol.cpp: options menu and options editor added
+    KConfig object introduced
+
+    * src/kvoicecontrol.h: options menu added
+
+    * src/buffer.cpp:
+    did some code cleaning so that the voice control detect_mode_off command
+    works properly
+
+    * src/buffer.h:
+    added misc get/set functions needed for the implementation of
+    the options dialog.
+
+    * src/score.h: get/set_adjust_win_width implemented
+
+    * src/options.cpp, src/options.h: Initial revision
+
+Sun Apr 26 15:57:35 1998  daniel  <daniel@yunnan>
+
+    * src/buffer.cpp, src/buffer.h, src/speakermodel.cpp, src/speakermodel.h, src/kvoicecontrol.cpp, src/kvoicecontrol.h, src/reference_editor.cpp, src/reference_editor.h, src/reference.cpp, src/reference.h, src/score.cpp, src/score.h, src/preprocessing.h, src/realfftf.c, src/realfftf.h, src/soundcard.cpp, src/soundcard.h, src/utterance.cpp, src/utterance.h:
+    Initial revision
+

@@ -1,0 +1,153 @@
+********************************************************************************
+*****                              KVoiceControl                           *****
+********************************************************************************
+
+KVoiceControl is a tool that gives you voice control over your unix commands.
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+There is now a mailing list for my little program: 
+
+  kvoicecontrol@kiecza.de
+
+To subscribe to the list send an e-mail to majordomo@kiecza.de
+where the e-mail must contain the following in the mail body (NOT the subject) on a
+single line:
+
+subscribe kvoicecontrol <my e-mail address>
+
+To unsubscribe use
+
+unsubscribe kvoicecontrol <my e-mail address>
+
+For information about the list
+
+info kvoicecontrol
+
+----------------------------------------------------------------------------------
+This list is generously sponsored by Schreiber Online (http://schreiber-online.de)
+Feel invited to visit their web site!! ;-)
+----------------------------------------------------------------------------------
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+
+------------------------------------------------------------------------------------
+See the Help section within KVoiceControl for information on how to use the program.
+------------------------------------------------------------------------------------
+
+
+KVoiceControl uses a template matching based speaker dependent isolated word 
+recognition system with non-linear time normalization (DTW).
+
+Note, that isolated word does NOT necessarily mean ONE SINGLE word. It just describes a 
+class of recognition systems among
+
+ isolated word
+ connected words
+ continuous speech
+ spontaneous speech
+
+Consider the following example: 
+-------------------------------
+
+ KVoiceControl knows five utterances (being connected to appropriate commands ...)
+  - connect to internet
+  - netscape communicator
+  - one xterm please
+  - launch emacs NOT VI!
+  - how are you today?
+ 
+ Here the recognition vocabulary consists of five "words" (=utterances) that can 
+ only be recognized one at a time, i.e. you cannot connect the words to build 
+ "sentences" like
+  <how are you today?> please launch <netscape communicator> and <connect to internet>
+
+IMPORTANT NOTE:
+---------------
+
+As mentioned above you do not need to use one single word as an utterance ...
+and it is strongly recommended to use LONGER SEQUENCES of words !!!!!
+This is due to the base concept of this recognition system: template matching.
+So if you used short commands like say <xterm> and <xedit> confusability would 
+be increased significantly and therefore recognition accuracy drops rapidly!!!
+
+
+INSTALLATION:
+-------------
+
+Standard should do: configure, make, make install
+
+
+TECHNICAL ISSUES:
+-----------------
+
+Sound is being record at 16kHz, 16 bit, mono. I guess, this should be supported 
+by any standard sound card ?!
+
+NOTE: To be able to record sound data (on a Linux system) one needs to introduce a 
+      user group that is allowed to access the sound device "/dev/dsp". For that purpose 
+      you need to add something like
+       sound:x:101:root,daniel
+      to /etc/group and add all users that should be allowed to access the sound card, 
+      here these users are root (the system administration user) and daniel. Then change 
+      the permissions and group properties of /dev/dsp0 
+      (this can only be done as user "root" !)
+        chgrp sound /dev/dsp0
+	chmod g+r /dev/dsp0
+      Now "ls -l /dev/dsp0" shoul output something like
+	crw-rw--w-   1 root     sound     14,   3 Apr 29  1997 /dev/dsp0
+      Then you must restart Windows to complete the installation ;-)
+
+      For answers to many questions concerning Linux and sound have a look at the 
+      Linux Sound-HOWTO which is available from
+       ftp://metalab.unc.edu/pub/Linux/docs/HOWTO/Sound-HOWTO
+
+NOTE: Be sure to select "Microphone in" and to set "mic in"-volume to an appropriate 
+      value (use [x|k]mix). Then use Calibrate_Micro from the menu "Options" within 
+      KVoiceControl to adjust the program to the microphone level
+
+NOTE: Up to now, Linux's standard sound system (OSS free) does not support full duplex
+      mode. That means you cannot play sound files when KVoiceControl is in action mode, 
+      as the program maintains a reading socket connection to the audio device!
+      This is not very satisfying as otherwise one could use a speech synthesis
+      program (e.g. mbrola) to let the computer answer appropriately ... :-(
+      That would be MULTIMEDIA !!! ;-)
+
+      Options to circumvent this problem:
+      - Reportedly there exists a patch for the free OSS that adds to it full duplex support
+      - spend $20 for the commercial OSS available from www.opensound.com
+      - Other sound systems for Linux support full duplex (e.g. ALSA - Advanced
+        Linux Sound Architecure, residing at http://alsa.jcu.cz/)
+
+      - A newly introduced option within KVoiceControl enables the user to have commands executed
+        while detection mode is switched off, afterwards detection mode is turned on again.
+        This is very convenient to produce synthesized speech as a control feedback!
+
+Recognizer details:
+-------------------
+
+* isolated word recognition
+
+* template matching using non-linear time normalization (DTW)
+  - DTW using symmetric Sahoe&Chiba warping function
+  - Adjustment window width: 40 (adjustable)
+  - starting corner sloppiness: 6 
+  - parallel warping planes and Branch&Bound comparison
+  - nearest neighbour wins template matching (roughly)
+
+* preprocessing:
+  - Hamming window
+  - Fast Hartley Transform (FFT) -> power spectrum
+  - (log) melscale coefficients
+  - mean substraction
+  - IMPORTANT: Amplitude normalization is not yet performed on the wave data
+               So it is important to
+	        - keep about the same distance between microphone and mouth
+                - speak at about a constant loudness level
+
+
+================================================================================
+                                     Last changed: Wed Nov  4 23:18:36 MET 1998
+                                               Daniel Kiecza <kiecza@ira.uka.de>

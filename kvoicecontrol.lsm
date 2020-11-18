@@ -1,0 +1,14 @@
+Begin3
+Title:          kvoicecontrol
+Version:        0.17
+Entered-date:   21APR99
+Description:    kvoicecontrol gives the user voice control over unix commands via speech recognition
+Keywords:       voicecontrol kvoicecontrol KDE Qt speech recognition
+Author:         daniel@kiecza.de (Daniel Kiecza)
+Maintained-by:  daniel@kiecza.de (Daniel Kiecza)
+Primary-site:   http://www.kiecza.de/daniel/kde/kvoicecontrol-0.17.tar.gz
+Alternate-site: ftp://ftp.kde.org/pub/kde/unstable/apps/multimedia/sound/
+Original-site:
+Platforms:      unix (only tested on Linux/i386)
+Copying-policy: GPL
+End

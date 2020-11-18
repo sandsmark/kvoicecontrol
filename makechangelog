@@ -1,0 +1,2 @@
+#!/bin/sh
+rcs2log -i 4 -R > ChangeLog

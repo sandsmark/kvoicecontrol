@@ -1,0 +1,204 @@
+head	1.6;
+access;
+symbols
+	beforeConnectedTry:1.4
+	branchAndBound:1.4
+	dockingToPanelNow:1.4;
+locks; strict;
+comment	@ * @;
+
+
+1.6
+date	99.01.02.08.14.59;	author kiecza;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	98.05.01.21.15.43;	author daniel;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	98.04.29.02.17.02;	author daniel;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	98.04.27.20.02.06;	author daniel;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	98.04.27.00.23.51;	author daniel;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	98.04.26.15.56.46;	author daniel;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.6
+log
+@removed RCS log history from file header
+@
+text
+@/*********************************************************************************
+ *
+ * $Id: kvoicecontrol.h,v 1.5 1998/05/01 21:15:43 daniel Exp kiecza $
+ *
+ *********************************************************************************/
+
+#ifndef KVOICECONTROL_H
+#define KVOICECONTROL_H
+
+#include <qpopmenu.h>
+#include <kapp.h>
+#include <kmenubar.h>
+#include <ktopwidget.h>
+#include <qrect.h>
+
+#include "speakermodel.h"
+
+
+class KVoiceControl : public KTopLevelWidget
+{
+  Q_OBJECT
+
+public:
+
+    KVoiceControl(char *speakerfile);
+    ~KVoiceControl();
+
+    SpeakerModel  *speakermodel;
+
+public slots:
+
+    void about();
+    void help();
+    void quit();
+
+    void set_title(QString title);
+    void set_detect(bool do_detect);
+
+private:
+
+    void create_menu();
+    void closeEvent(QCloseEvent *e);
+
+    KMenuBar      *main_menu;
+    QPopupMenu    *file_menu;
+    QPopupMenu    *rec_menu;
+    QPopupMenu    *opt_menu;
+    QPopupMenu    *help_menu;
+    
+    int detect_ID;
+
+    QRect *menu_geometry;
+};
+
+#endif
+
+
+@
+
+
+1.5
+log
+@constructor accepts speakerfile name now (that was extracted from the command line)
+@
+text
+@d3 1
+a3 18
+ * $Id: kvoicecontrol.h,v 1.4 1998/04/29 02:17:02 daniel Exp daniel $
+ *
+ * $Log: kvoicecontrol.h,v $
+ * Revision 1.4  1998/04/29 02:17:02  daniel
+ * tiny_mode removed !
+ * closeEvent introduced for proper interaction with DockWidget!
+ *
+ * Revision 1.3  1998/04/27 20:02:06  daniel
+ * led_record and led_recognition added
+ * led_recognition not yet working correctly!
+ * tiny mode added (can be used during recognition mode; just displays the two LEDs)
+ *
+ * Revision 1.2  1998/04/27 00:23:51  daniel
+ * options menu added
+ *
+ * Revision 1.1  1998/04/26 15:56:46  daniel
+ * Initial revision
+ *
+@
+
+
+1.4
+log
+@tiny_mode removed !
+closeEvent introduced for proper interaction with DockWidget!
+@
+text
+@d3 1
+a3 1
+ * $Id: kvoicecontrol.h,v 1.3 1998/04/27 20:02:06 daniel Exp daniel $
+d6 4
+d42 1
+a42 1
+    KVoiceControl();
+@
+
+
+1.3
+log
+@led_record and led_recognition added
+led_recognition not yet working correctly!
+tiny mode added (can be used during recognition mode; just displays the two LEDs)
+@
+text
+@d3 1
+a3 1
+ * $Id: kvoicecontrol.h,v 1.2 1998/04/27 00:23:51 daniel Exp daniel $
+d6 5
+a51 2
+    void toggle_tiny_mode();
+
+d55 1
+a63 3
+
+    int tiny_ID;
+    bool is_tiny;
+@
+
+
+1.2
+log
+@options menu added
+@
+text
+@d3 1
+a3 1
+ * $Id: kvoicecontrol.h,v 1.1 1998/04/26 15:56:46 daniel Exp daniel $
+d6 3
+d22 1
+d47 2
+d60 5
+d68 1
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d3 5
+a7 1
+ * $Id: $
+a8 1
+ * $Log: $
+d49 1
+@

@@ -1,0 +1,1574 @@
+head	1.17;
+access;
+symbols
+	beforeConnectedTry:1.9
+	branchAndBound:1.8
+	dockingToPanelNow:1.6;
+locks; strict;
+comment	@// @;
+
+
+1.17
+date	99.01.30.01.13.19;	author kiecza;	state Exp;
+branches;
+next	1.16;
+
+1.16
+date	99.01.02.08.08.26;	author kiecza;	state Exp;
+branches;
+next	1.15;
+
+1.15
+date	98.09.26.08.06.41;	author daniel;	state Exp;
+branches;
+next	1.14;
+
+1.14
+date	98.06.14.12.54.02;	author daniel;	state Exp;
+branches;
+next	1.13;
+
+1.13
+date	98.06.02.10.33.21;	author daniel;	state Exp;
+branches;
+next	1.12;
+
+1.12
+date	98.05.05.11.16.51;	author daniel;	state Exp;
+branches;
+next	1.11;
+
+1.11
+date	98.05.01.21.42.39;	author daniel;	state Exp;
+branches;
+next	1.10;
+
+1.10
+date	98.05.01.21.14.45;	author daniel;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	98.04.30.15.46.21;	author daniel;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	98.04.29.22.17.17;	author daniel;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	98.04.29.11.00.15;	author daniel;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	98.04.29.02.15.54;	author daniel;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	98.04.28.11.20.13;	author daniel;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	98.04.27.23.58.58;	author daniel;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	98.04.27.20.01.53;	author daniel;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	98.04.27.00.29.19;	author daniel;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	98.04.26.15.57.19;	author daniel;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.17
+log
+@introduced several new special commands that allow for simple tree structured grammars.
+The tag @@ forces commands to be executed in detect_mode_off-state
+@
+text
+@/*********************************************************************************
+ *
+ * $Id: speakermodel.cpp,v 1.16 1999/01/02 08:08:26 kiecza Exp kiecza $
+ *
+ *********************************************************************************/
+
+#include <unistd.h>    
+
+#include <qfiledlg.h>
+#include <qpushbt.h>
+#include <qlistbox.h>
+#include <qlayout.h>
+#include <qfile.h>
+#include <qdstream.h>
+#include <qdatetm.h> 
+#include <qmsgbox.h>
+#include <stdlib.h>
+
+#include "speakermodel.moc"
+
+#include<iostream.h>
+
+#include "reference.h"
+#include "reference_editor.h"
+#include "preprocessing.h"
+#include "buffer.h"
+#include "score.h"
+#include "options.h"
+#include "train_dialog.h"
+
+#include "docking.h"
+#include "kvoicecontrol.h"
+extern DockWidget *dock_widget;
+
+SpeakerModel::SpeakerModel(KConfig *config, 
+			   QWidget *parent, const char *name) : QWidget( parent, name )
+{
+  resize(300, 200);
+  
+  ref_listbox = new QListBox( this, "ref_listbox" );
+  ref_listbox->setGeometry(0, 0, 200, 200);
+  ref_list = new QList<Reference>();
+  ref_list->setAutoDelete(true);
+  
+  new_reference_btn = new QPushButton( "New", this, "new_reference" );
+  new_reference_btn->setGeometry(220, 35, 60, 30);
+  connect(new_reference_btn,  SIGNAL(clicked()), this, SLOT(new_reference()));
+  edit_reference_btn = new QPushButton( "Edit ...", this, "edit_reference" );
+  edit_reference_btn->setGeometry(220, 90, 60, 30);
+  connect(edit_reference_btn,  SIGNAL(clicked()), this, SLOT(edit_reference()));
+  delete_reference_btn = new QPushButton( "Delete", this, "delete_reference" );
+  delete_reference_btn->setGeometry(220, 145, 60, 30);
+  connect(delete_reference_btn,  SIGNAL(clicked()), this, SLOT(delete_reference()));
+
+  fdialog  = new QFileDialog(NULL, ".spk", NULL, "dialog", TRUE);
+
+  preprocessing= new Preprocessing();
+  score        = new Score();
+  buffer       = new SoundBuffer();
+
+  led_timer = new QTimer( this );
+  connect( led_timer, SIGNAL(timeout()), dock_widget, SLOT(toggle_led_recognition()) );
+
+  do_detect = false;
+  changed = false;
+
+  // ***** load configuration
+  // ***** not working yet !?
+
+  QString s; 
+  QString oldgroup = config->group();
+  config->setGroup("Sound");
+  s = config->readEntry("RecLevelThreshold", "10");
+  buffer->set_rec_level_threshold(s.toInt());
+  s = config->readEntry("AcceptedSilenceFrames", "4");
+  buffer->set_accept_silence(s.toInt());
+  config->setGroup("Recognizer");
+  s = config->readEntry("AdjustmentWindowWidth", "70");
+  score->set_adjust_width(s.toInt());
+  s = config->readEntry("ScoreThreshold", "15.0" );
+  score->set_threshold(s.toFloat());
+  s = config->readEntry("MinimumScoreDistance", "2.4" );
+  score->set_min_distance(s.toFloat());
+  config->setGroup( oldgroup );
+
+  
+  options_dlg = new Options();
+
+  connect(options_dlg, SIGNAL(reject_thresh_changed(float)), 
+	  score, SLOT(set_threshold(float)));
+  connect(options_dlg, SIGNAL(min_dist_changed(float)), 
+	  score, SLOT(set_min_distance(float)));
+  connect(options_dlg, SIGNAL(adj_win_width_changed(int)), 
+	  score, SLOT(set_adjust_width(int)));
+
+  connect(options_dlg, SIGNAL(acc_sil_frames_changed(int)), 
+	  buffer, SLOT(set_accept_silence(int)));
+  connect(options_dlg, SIGNAL(rec_level_thresh_changed(int)), 
+	  buffer, SLOT(set_rec_level_threshold(int)));
+
+}
+
+
+SpeakerModel::~SpeakerModel()
+{
+  delete filename;
+  delete fdialog;
+
+  delete preprocessing;
+  delete score;
+  delete buffer;
+
+  delete ref_listbox;
+  delete ref_list;
+}
+
+/* -------------------------------------------------------------------------------- */
+
+bool SpeakerModel::reset()
+{
+  bool ok = true;
+
+  if (has_changed())
+    ok = ask_save_changes();
+  else
+    ok = true;
+
+  if (ok)
+  {
+    detect_mode_off();
+    
+    filename = 0;
+    ref_listbox->clear();
+    ref_list->clear();
+    
+    changed = false;
+    
+    emit new_title(QString("KVoiceControl: [none]"));
+
+    return true;
+  }
+
+  return false;
+}
+
+
+void SpeakerModel::import()
+{
+  load(NULL, false);
+}
+
+
+void SpeakerModel::load()
+{
+  load(NULL, true);
+}
+
+
+void SpeakerModel::load(char *f=0, bool reset_first)
+{
+  detect_mode_off();
+  
+  QString filename_tmp;
+
+  if (f == 0)
+    filename_tmp = fdialog->getOpenFileName(NULL, "*.spk", NULL, "fdialog");
+  else
+    filename_tmp = QString(f);
+
+  //cerr << "F " << filename_tmp << endl;
+  
+  if (filename_tmp != NULL)
+  {
+    if (!reset_first || reset())
+    {
+      //filename = new QString(filename_tmp);
+      QFile file(filename_tmp);
+      file.open( IO_ReadOnly );   
+      QDataStream s( &file );     
+      uint count;
+      s >> count;
+      for (uint count_tmp=0; count_tmp < count; count_tmp++)
+      {
+	Reference *r = new Reference();
+	s >> r;
+	ref_listbox->insertItem(r->get_name());
+	ref_listbox->setCurrentItem(ref_listbox->count()-1);
+	ref_list->append(r);
+      }
+      file.close();               
+      
+      if (reset_first)
+      {	
+	filename = new QString(filename_tmp);
+	QString title = filename->right(filename->length()-filename->findRev('/')-1);
+	title.prepend("KVoiceControl: ");
+	emit new_title(title);
+      }
+    }
+  }
+}
+
+
+void SpeakerModel::save()
+{
+  detect_mode_off();
+
+  if (NULL == filename)
+    save_as();
+  else
+  {
+    QFile file(*filename);
+
+    file.open( IO_WriteOnly );   
+    QDataStream s( &file );     
+
+    s << ref_list->count();
+
+    for (uint count=0; count < ref_list->count(); count++)
+    {
+      s << *(ref_list->at(count));
+    }
+
+    changed = false;
+
+    file.close();               
+  }
+}
+
+ 
+void SpeakerModel::save_as()
+{
+  detect_mode_off();
+
+  QString filename_tmp = fdialog->getSaveFileName(NULL, "*.spk", NULL, "fdialog");
+
+  if (filename_tmp != NULL)
+  {
+    filename = new QString(filename_tmp);
+    if (filename->right(4) != ".spk")
+      filename->append(".spk");
+    
+    save();
+
+    QString title = filename->right(filename->length()-filename->findRev('/')-1);
+    title.prepend("KVoiceControl: ");
+    emit new_title(title);
+  }
+}
+
+
+void SpeakerModel::detect_mode_on()
+{
+  if (!do_detect && check_references())  
+  {
+    if (!buffer->detect_speech(true))
+      return;
+
+    connect(buffer, SIGNAL(end_detected()), this, SLOT(test_utterance()));
+    do_detect = true;
+    emit detect_mode_changed(true);
+    connect(buffer, SIGNAL(recording_active()), dock_widget, SLOT(toggle_led_record()));
+    dock_widget->led_record_on();
+    KApplication::flushX();
+    kapp->processEvents();
+  }
+}
+
+
+void SpeakerModel::detect_mode_off()
+{
+  if (do_detect)
+  {
+    do_detect = false;
+    
+    disconnect(buffer, SIGNAL(end_detected()), this, SLOT(test_utterance()));
+    buffer->detect_speech(false);
+    
+    emit detect_mode_changed(false);
+    disconnect(buffer, SIGNAL(recording_active()), dock_widget, SLOT(toggle_led_record()));
+    dock_widget->led_record_off();
+    KApplication::flushX();
+    kapp->processEvents();
+  }
+};
+
+
+void SpeakerModel::toggle_detect_mode()
+{
+  dock_widget->led_recognition_off();
+  KApplication::flushX();
+  kapp->processEvents();
+
+  if (do_detect)
+    detect_mode_off();
+  else
+    detect_mode_on();
+}
+
+
+void SpeakerModel::test_utterance()
+{
+  detect_mode_off();
+  dock_widget->led_recognition_on();
+  led_timer->start(150);
+  KApplication::flushX();
+  kapp->processEvents();
+
+  Utterance *test_utterance = preprocessing->preprocess_utterance(buffer->get_data(), 
+								  buffer->get_size());
+
+  // ***** branch&bound-score is by factor HELL faster ! ;-)
+  //QString *result = score->score(test_utterance, ref_list);
+  //QDateTime dt = QDateTime::currentDateTime();
+  //cerr << dt.toString() << endl;
+  QString *result = score->branchNbound_score(test_utterance, ref_list);
+  //dt = QDateTime::currentDateTime();
+  //cerr << dt.toString() << endl;
+
+  led_timer->stop();
+  
+  if (NULL == result)
+  {
+    dock_widget->led_recognition_off();
+    detect_mode_on();
+  }
+  else
+  {
+    QString command = result->copy();
+    delete result;
+
+    dock_widget->led_recognition_success();
+
+    KApplication::flushX();
+    kapp->processEvents();
+
+    command = command.stripWhiteSpace();
+    execute_command(command);
+  }
+}
+
+
+/* -------------------------------------------------------------------------------- */
+
+/*---------------------------------------*/
+/* test_command                          */
+/* params: command = string to work on   */
+/*         cname   = command to look for */
+/* purpose: helper to look for special   */
+/*          commands and handle them     */
+/*---------------------------------------*/
+
+QString SpeakerModel::test_command(QString command, QString command_name)
+{
+   int start;
+
+   //#ifdef DEBUG
+   // /*debug*/printf("test_command(\"%s\",\"%s\")\n",(const char *)command,(const char *)command_name);    
+   //#endif
+
+   start = command.find(command_name, 0, FALSE);
+
+   if (start < 0) 
+     return(NULL);			  // ***** given command not found
+   
+   if (start > 1) 
+     execute_command(command.left(start));	  // ***** if other commands should be executed before
+   
+   end = command.find(";", start, FALSE); // ***** find the end of the command
+   
+   start = start + command_name.length();
+
+   if (end < 0)
+   {
+     return(command.right(command.length() - start));	// ***** return their arguments
+   }
+   else
+   {
+     return(command.mid(start, end - start));
+   }
+};
+
+
+#define IFCOMMAND(cmd) args = test_command(command,cmd) ; if (!args.isEmpty())
+#define NEXT_COMMAND   if ((end > 0) && (((command.length() - end) - 1) > 0)) execute_command(command.right((command.length() - end) - 1)); return;
+
+/*---------------------------------------*/
+/*  execute_command                         */
+/* params: command = string to work on   */
+/* purpose: just what the name says      */
+/*---------------------------------------*/
+
+void SpeakerModel::execute_command(QString command)
+ {
+   QString args;
+
+   //#ifdef DEBUG
+   // /*debug*/printf("execute_command(%s)\n",(const char *)command);  
+   //#endif
+   
+   if(command.isEmpty()) return;
+  
+   // ***** opend a file named index.spk in the given dir. 
+   // ***** this makes ,A4(Bcommand-trees,A4(B like 
+   // ***** "[get [time | date] | sleep | start [editor | terminal] ]"  possible
+
+  IFCOMMAND("openDir=")		
+  {
+    if (chdir(((const char *)args)) == 0 )
+    {
+      load("index.spk", true);
+    }
+    else
+    {
+      printf("could not find directory!\n");
+    };
+    
+    detect_mode_on();
+    NEXT_COMMAND 
+  };
+  
+  // ***** open another spk-file
+
+  IFCOMMAND("openFile=")	   
+  {
+    load((char *)((const char *)args), true);
+
+    detect_mode_on();
+    NEXT_COMMAND
+  };
+  
+  // *****beware! the old dir will not be in the search path any more
+
+  IFCOMMAND("appendDir=")
+  {
+    if(chdir(((const char *)args)) == 0 )
+      load("index.spk",false);
+
+    detect_mode_on();
+    NEXT_COMMAND
+  };
+
+  IFCOMMAND("appendFile=")
+  {
+    load((char *)((const char *)args),false);
+
+    detect_mode_on();
+    NEXT_COMMAND
+  };
+
+  IFCOMMAND("@@")
+  {
+    detect_mode_off();
+    system((const char *)args);
+
+    detect_mode_on();
+    NEXT_COMMAND 
+  };
+ 
+  // ***** it,A4(Bs just one of a few special commands now, the single ,A4(Bf,A4(B in off IS NO TYPO
+  // ***** *Daniel* but we use it with two 'f's now!
+
+  IFCOMMAND("detectModeOff")
+  {
+    detect_mode_off();
+    NEXT_COMMAND
+  };
+
+  // ***** execute it only in the Background if there aren,A4(Bt any special commands behind it
+
+  cerr << "C: " << command << endl;
+
+  if ((end <= 0) && (command.right(1) != "&") )
+    command.append(" &");     
+  system(command);
+  detect_mode_on();
+};
+
+
+
+/* -------------------------------------------------------------------------------- */
+
+bool SpeakerModel::check_references()
+{
+  for (uint i = 0 ; i < ref_list->count() ; i++)
+  {
+    if (ref_list->at(i) == 0)
+    {
+      char text[256];
+      sprintf(text, "Reference number %d is empty!", i+1);
+      QMessageBox::information( this, "Oops", text );
+      return false;
+    }
+    if (ref_list->at(i)->count() < 2)
+    {
+      QString *text = new QString(ref_list->at(i)->get_name().copy());
+      text->prepend("\"");
+      text->append("\"\nneeds at least two utterances!!");
+      QMessageBox::information( this, "Oops", *text );
+      delete text;
+      return false;
+    }
+  }
+  if (ref_list->count() == 0)
+  {
+    QMessageBox::information( this, "Oops", "No references !!" );
+    return false;
+  }
+  
+  return true;
+}
+
+
+void SpeakerModel::new_reference()
+{
+  // ***** edit a new reference
+
+  if (!ref_list->contains(NULL))
+  {
+    ref_listbox->insertItem("untitled");
+    ref_listbox->setCurrentItem(ref_listbox->count()-1);
+    ref_list->append(NULL);
+
+    changed = true;
+  }
+}
+
+void SpeakerModel::edit_reference()
+{
+  // ***** edit actual list box entry if one selected
+
+  if (-1 != ref_listbox->currentItem())
+  {
+    if (do_detect)
+      detect_mode_off();
+
+    if (NULL == ref_list->at(ref_listbox->currentItem())) 
+    {
+      // ***** new reference
+      
+      Reference *r = new Reference();
+
+      ref_editor = new ReferenceEditor(r, preprocessing, buffer, this, "ref_editor");
+
+      if (ref_editor->exec())
+      {
+	uint pos = ref_listbox->currentItem();
+	
+	ref_list->remove(pos);
+	ref_list->insert(pos, r);
+	ref_listbox->removeItem(pos);
+	ref_listbox->insertItem(r->get_name(), pos);
+	ref_listbox->setCurrentItem(pos);
+
+	changed = true;
+      }
+      delete ref_editor;
+    }
+    else
+    {
+      // ***** existing reference
+
+      ref_editor = new ReferenceEditor(ref_list->at(ref_listbox->currentItem()), 
+				       preprocessing, 
+				       buffer,
+				       this, 
+				       "ref_editor");
+      
+      if (ref_editor->exec())
+      {
+	uint pos = ref_listbox->currentItem();
+	
+	ref_listbox->removeItem(pos);
+	ref_listbox->insertItem(ref_list->at(pos)->get_name(), pos);
+	ref_listbox->setCurrentItem(pos);
+
+	changed = true;
+      }
+
+      delete ref_editor;
+    }
+  }
+}
+
+
+void SpeakerModel::delete_reference()
+{
+  // ***** delete actual list box entry if one selected
+
+  if (-1 != ref_listbox->currentItem())
+  {
+    uint idx = ref_listbox->currentItem();
+    ref_listbox->removeItem(idx);
+    ref_list->remove(idx);
+
+    changed = true;
+  }
+}
+
+
+void SpeakerModel::append_reference(Reference *r)
+{
+  // ***** add this reference (no copy, just the pointer!!)
+
+  if (r != NULL)
+  {
+    ref_listbox->insertItem(r->get_name());
+    ref_listbox->setCurrentItem(ref_listbox->count()-1);
+    ref_list->append(r);
+
+    changed = true;
+  }
+}
+
+
+bool SpeakerModel::has_changed()
+{
+  return changed;
+}
+
+
+bool SpeakerModel::ask_save_changes()
+{
+  switch( QMessageBox::information( this, "KVoiceControl",
+				    "The speakermodel has changed!\n"
+				    "Do you want to save it before exiting?",
+				    "&Save", "&Don't Save", "&Cancel",
+				    0, 2 ) )
+  {
+  case 0: 
+    save();
+    return(true);
+    break;
+  case 1:
+    return(true);
+    break;
+  case 2:
+    return(false);
+    break;
+  }
+  
+  return(true);
+}
+
+
+void SpeakerModel::show_options()
+{
+  detect_mode_off();
+
+  if (!options_dlg->isVisible())
+  {
+    // ***** fill in values
+
+    options_dlg->set_rec_thresh(buffer->get_rec_level_threshold());
+    options_dlg->set_acc_sil_frames(buffer->get_acc_sil_frames());
+
+    options_dlg->set_adj_win_width(score->get_adjust_win_width());
+    options_dlg->set_reject_thresh(score->get_threshold());
+    options_dlg->set_min_dist(score->get_min_distance());
+
+    options_dlg->show();
+  }
+}
+
+
+void SpeakerModel::train_references()
+{
+  detect_mode_off();
+
+  QString refslist_file = fdialog->getOpenFileName(NULL, "*.txt", NULL, "fdialog");
+  
+  if (refslist_file != NULL)
+  {
+    TrainDialog *traindialog = new TrainDialog(refslist_file, this, preprocessing, 
+					       buffer, this,  "train_dialog");
+    //traindialog->exec();
+    delete traindialog;
+  }
+}
+
+
+void SpeakerModel::calibrate_micro()
+{
+  detect_mode_off();
+
+  buffer->calibrate_micro();
+}
+
+
+void SpeakerModel::save_config(KConfig *config)
+{
+  // ***** save configuration
+  // ***** not working yet !?
+
+  QString oldgroup = config->group();
+  config->setGroup("Sound");
+  config->writeEntry("RecLevelThreshold", buffer->get_rec_level_threshold());
+  config->writeEntry("AcceptedSilenceFrames", buffer->get_acc_sil_frames());
+  config->setGroup("Recognizer");
+  config->writeEntry("AdjustmentWindowWidth", score->get_adjust_win_width() );  
+  QString s;
+  s.sprintf("%f", score->get_threshold());
+  config->writeEntry("ScoreThreshold", s );
+  s.sprintf("%f", score->get_min_distance());
+  config->writeEntry("MinimumScoreDistance", s );
+  config->setGroup( oldgroup );
+}
+
+@
+
+
+1.16
+log
+@removed RCS log history from file header
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.15 1998/09/26 08:06:41 daniel Exp kiecza $
+d7 2
+d337 77
+a413 1
+    if (command != "detect_mode_off")
+d415 64
+a478 4
+      command = command.stripWhiteSpace();
+      if (command.right(1) != "&")
+	command.append(" &");
+      system(command);
+a479 4
+      detect_mode_on();
+    }
+  }
+}
+@
+
+
+1.15
+log
+@main window caption changed from "speakermodel.spk" to "KVoiceControl: speakermodel.spk"
+@
+text
+@d3 1
+a3 59
+ * $Id: speakermodel.cpp,v 1.14 1998/06/14 12:54:02 daniel Exp daniel $
+ *
+ * $Log: speakermodel.cpp,v $
+ * Revision 1.14  1998/06/14 12:54:02  daniel
+ * switch off detect_mode before calling calibrate_micro
+ *
+ * Revision 1.13  1998/06/02 10:33:21  daniel
+ * microphone calibration added
+ *
+ * Revision 1.12  1998/05/05 11:16:51  daniel
+ * <import speakerfile> added
+ *
+ * Revision 1.11  1998/05/01 21:42:39  daniel
+ * removed debugging output
+ *
+ * Revision 1.10  1998/05/01 21:14:45  daniel
+ * TrainDialog introduced ....
+ * changed some recognizer default values
+ * can now specify speakerfile at startup time .... enter hidden/recognition-mode then!
+ *
+ * Revision 1.9  1998/04/30 15:46:21  daniel
+ * unimportant modifications ...
+ *
+ * Revision 1.8  1998/04/29 22:17:17  daniel
+ * min_distance moved to score now (all scoring is done within score now, as it should be done)
+ * now calling branch&bound scoring - MUCH faster!
+ *
+ * Revision 1.7  1998/04/29 11:00:15  daniel
+ * nothing important
+ *
+ * Revision 1.6  1998/04/29 02:15:54  daniel
+ * tiny_mode removed -> now using docking to panel!!!
+ * DockWidget introduced that shows two leds on the Panel indicating the
+ * recognizers state ...
+ * LED lamps removed (moved onto docking_widget infact)
+ * #include's moved from header-file to this file as far as possible ->
+ *   in speakermodel.h just keep class definitions (e.g. class SoundBuffer;)
+ * detect_mode_on/off are now only executed when really toggling mode!
+ *  (not always)
+ *
+ * Revision 1.5  1998/04/28 11:20:13  daniel
+ * score_threshold moved to class Score now -> online rejection!
+ *
+ * Revision 1.4  1998/04/27 23:58:58  daniel
+ * led_recognition working correctly now!
+ *
+ * Revision 1.3  1998/04/27 20:01:53  daniel
+ * led_record and led_recognition added
+ * led_recognition not yet working correctly!
+ * tiny mode added (can be used during recognition mode; just displays the two LEDs)
+ *
+ * Revision 1.2  1998/04/27 00:29:19  daniel
+ * detect_mode_off works fine now
+ * options dialog implemented
+ * save_config methode introduced (not yet working properly!!)
+ *
+ * Revision 1.1  1998/04/26 15:57:19  daniel
+ * Initial revision
+ *
+@
+
+
+1.14
+log
+@switch off detect_mode before calling calibrate_micro
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.13 1998/06/02 10:33:21 daniel Exp daniel $
+d6 3
+d194 1
+a194 1
+    emit new_title(QString("[none]"));
+d251 3
+a253 1
+	emit new_title(filename->right(filename->length()-filename->findRev('/')-1));
+d300 4
+a303 1
+    emit new_title(filename->right(filename->length()-filename->findRev('/')-1));
+@
+
+
+1.13
+log
+@microphone calibration added
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.12 1998/05/05 11:16:51 daniel Exp daniel $
+d6 3
+d600 2
+@
+
+
+1.12
+log
+@<import speakerfile> added
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.11 1998/05/01 21:42:39 daniel Exp daniel $
+d6 3
+d592 6
+@
+
+
+1.11
+log
+@removed debugging output
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.10 1998/05/01 21:14:45 daniel Exp daniel $
+d6 3
+d194 6
+d202 1
+a202 1
+  load(NULL);
+d206 1
+a206 1
+void SpeakerModel::load(char *f=0)
+d221 1
+a221 1
+    if (reset())
+d223 2
+a224 2
+      filename = new QString(filename_tmp);
+      QFile file(*filename);
+d239 5
+a243 1
+      emit new_title(filename->right(filename->length()-filename->findRev('/')-1));
+@
+
+
+1.10
+log
+@TrainDialog introduced ....
+changed some recognizer default values
+can now specify speakerfile at startup time .... enter hidden/recognition-mode then!
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.9 1998/04/30 15:46:21 daniel Exp daniel $
+d6 5
+d208 1
+a208 1
+  cerr << "F " << filename_tmp << endl;
+@
+
+
+1.9
+log
+@unimportant modifications ...
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.8 1998/04/29 22:17:17 daniel Exp daniel $
+d6 3
+d68 1
+a99 10
+  /*
+  led_record = new KLedLamp(this);
+  led_record->setGeometry(225, 10, 15, 6);
+  led_record->off();
+
+  led_recognition = new KLedLamp(this);
+  led_recognition->setGeometry(260, 10, 15, 6);
+  led_recognition->off();
+  */
+
+d117 1
+a117 1
+  s = config->readEntry("AdjustmentWindowWidth", "40");
+d119 1
+a119 1
+  s = config->readEntry("ScoreThreshold", "9.0" );
+d121 1
+a121 1
+  s = config->readEntry("MinimumScoreDistance", "3.0" );
+d188 6
+d196 8
+a203 2
+  QString filename_tmp = fdialog->getOpenFileName(NULL, "*.spk", NULL, "fdialog");
+  //QString filename_tmp = "d.spk";
+d493 15
+d554 16
+@
+
+
+1.8
+log
+@min_distance moved to score now (all scoring is done within score now, as it should be done)
+now calling branch&bound scoring - MUCH faster!
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.7 1998/04/29 11:00:15 daniel Exp daniel $
+d6 4
+d323 1
+a323 1
+  led_timer->start(300);
+d332 2
+d335 2
+@
+
+
+1.7
+log
+@nothing important
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.6 1998/04/29 02:15:54 daniel Exp daniel $
+d6 3
+d124 1
+a124 1
+  min_distance = s.toFloat();
+d133 1
+a133 2
+	  this, SLOT(set_min_distance(float)));
+
+d326 3
+a328 1
+  //cerr << "please wait ... recognition in progress" << endl;
+d330 1
+a330 10
+  QString hypo;
+  QString command;
+  float best_score = 1000000;
+  float secondbest_score = 1000000;
+
+  QString hypo2;
+
+
+  //QDateTime dt = QDateTime::currentDateTime();
+  //cerr << dt.toString() << endl;
+d332 1
+a332 42
+
+  // ***** test every utterance
+
+  for (uint i=0; i < ref_list->count(); i++)
+  {
+    Reference *r = ref_list->at(i);
+    
+    //cerr << "Testing: " << r->get_name() << endl;
+   
+    // ***** test every sampleUtterance
+
+    for (uint j=0; j < r->count(); j++)
+    {
+      float score_act = score->score(test_utterance, r->at(j));
+
+      //cerr << "    - scoreAct: " << score_act << endl;
+
+      if (score_act < best_score)
+      {
+	secondbest_score = best_score;
+
+	hypo2 = hypo.copy();
+	best_score = score_act;
+	hypo = r->get_name();
+	command = r->get_command();
+      }
+      else if (score_act < secondbest_score)
+      {
+	secondbest_score = score_act;
+	hypo2 = r->get_name();
+      }
+    }
+
+    //cerr << "  1best: " << best_score << endl;
+    //cerr << "  2best: " << secondbest_score << endl;
+    //cerr << "  Hypo1: " << hypo << endl;
+    //cerr << "  Hypo2: " << hypo2 << endl;
+  }
+
+  led_timer->stop();
+
+  if (best_score > score->get_threshold())
+a334 1
+    //cerr << "RESULT: Nothing matched !!!!!" << endl;
+d337 1
+a337 1
+  else if (hypo == hypo2)
+d339 3
+a341 1
+    //cerr << "RESULT: OK -> " << hypo << endl;
+d343 1
+d347 1
+a347 5
+    if (command == "detect_mode_off")
+    {
+      // ***** nothing to do!
+    }
+    else
+a356 37
+  else
+  {
+    float dist = secondbest_score - best_score;
+
+    if (dist < min_distance)
+    {
+      //cerr << "RESULT: different first and second hypo have too similar scores (" << dist << ")" << endl;
+      dock_widget->led_recognition_off();
+      detect_mode_on();
+    }
+    else
+    {
+      //cerr << "RESULT: OK (" << dist << ") -> " << hypo << endl;
+
+      dock_widget->led_recognition_success();
+      KApplication::flushX();
+      kapp->processEvents();
+
+      if (command == "detect_mode_off")
+      {
+	// ***** nothing to do!
+      }
+      else
+      {
+	command = command.stripWhiteSpace();
+	if (command.right(1) != "&")
+	  command.append(" &");
+	system(command);
+
+	detect_mode_on();
+      }
+    }
+  }
+
+  //dt = QDateTime::currentDateTime();
+  //cerr << dt.toString() << endl;
+
+d522 1
+a522 1
+    options_dlg->set_min_dist(min_distance);
+d543 1
+a543 1
+  s.sprintf("%f", min_distance);
+@
+
+
+1.6
+log
+@tiny_mode removed -> now using docking to panel!!!
+DockWidget introduced that shows two leds on the Panel indicating the
+recognizers state ...
+LED lamps removed (moved onto docking_widget infact)
+#include's moved from header-file to this file as far as possible ->
+  in speakermodel.h just keep class definitions (e.g. class SoundBuffer;)
+detect_mode_on/off are now only executed when really toggling mode!
+ (not always)
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.5 1998/04/28 11:20:13 daniel Exp daniel $
+d6 10
+d190 2
+a191 2
+  //QString filename_tmp = fdialog->getOpenFileName(NULL, "*.spk", NULL, "fdialog");
+  QString filename_tmp = "d.spk";
+@
+
+
+1.5
+log
+@score_threshold moved to class Score now -> online rejection!
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.4 1998/04/27 23:58:58 daniel Exp daniel $
+d6 3
+d42 10
+d79 1
+d87 1
+d90 1
+a90 1
+  connect( led_timer, SIGNAL(timeout()), led_recognition, SLOT(toggle()) );
+a109 1
+  //score_threshold = s.toFloat();
+d180 2
+a181 1
+  QString filename_tmp = fdialog->getOpenFileName(NULL, "*.spk", NULL, "fdialog");
+d256 1
+a256 1
+  if (check_references())  
+d258 4
+a262 4
+    
+    connect(buffer, SIGNAL(end_detected()), this, SLOT(test_utterance()));
+    buffer->detect_speech(true);
+    
+d264 4
+a267 3
+
+    connect(buffer, SIGNAL(recording_active()), led_record, SLOT(toggle()));
+    led_record->on();
+d274 13
+a286 11
+  do_detect = false;
+
+  disconnect(buffer, SIGNAL(end_detected()), this, SLOT(test_utterance()));
+  buffer->detect_speech(false);
+
+  emit detect_mode_changed(false);
+
+  disconnect(buffer, SIGNAL(recording_active()), led_record, SLOT(toggle()));
+  led_record->off();
+  KApplication::flushX();
+  kapp->processEvents();
+d292 1
+a292 1
+  led_recognition->off();
+d306 1
+a306 1
+  led_recognition->on();
+d324 2
+a325 2
+  QDateTime dt = QDateTime::currentDateTime();
+  cerr << dt.toString() << endl;
+d366 2
+d370 1
+a370 1
+    led_recognition->off();
+d377 3
+a379 1
+    led_recognition->on();
+d402 1
+a402 1
+      led_recognition->off();
+d409 3
+a411 1
+      led_recognition->on();
+d429 2
+a430 2
+  dt = QDateTime::currentDateTime();
+  cerr << dt.toString() << endl;
+a431 1
+  led_timer->stop();
+a620 30
+}
+
+
+void SpeakerModel::tiny_mode(bool on)
+{
+  if (on)
+  {
+    // **** switch on tiny mode
+
+    ref_listbox->hide();
+    new_reference_btn->hide();   
+    edit_reference_btn->hide();  
+    delete_reference_btn->hide();
+    led_record->setGeometry(5, 3, 15, 6);
+    led_recognition->setGeometry(5, 13, 15, 6);
+    resize(25, 25);
+  }
+  else
+  {
+    // **** back to normal
+
+    ref_listbox->show();
+    new_reference_btn->show();   
+    edit_reference_btn->show();  
+    delete_reference_btn->show();
+    led_record->setGeometry(225, 10, 15, 6);
+    led_recognition->setGeometry(260, 10, 15, 6);
+    resize(300, 200);
+  }
+  
+@
+
+
+1.4
+log
+@led_recognition working correctly now!
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.3 1998/04/27 20:01:53 daniel Exp daniel $
+d6 3
+d94 2
+a95 1
+  score_threshold = s.toFloat();
+d104 1
+a104 1
+	  this, SLOT(set_threshold(float)));
+d305 5
+d348 1
+a348 1
+  if (best_score > score_threshold)
+d405 3
+d573 1
+a573 1
+    options_dlg->set_reject_thresh(score_threshold);
+d593 1
+a593 1
+  s.sprintf("%f", score_threshold);
+@
+
+
+1.3
+log
+@led_record and led_recognition added
+led_recognition not yet working correctly!
+tiny mode added (can be used during recognition mode; just displays the two LEDs)
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.2 1998/04/27 00:29:19 daniel Exp daniel $
+d6 5
+a31 1
+
+d37 2
+a38 1
+SpeakerModel::SpeakerModel(KConfig *config, QWidget *parent, const char *name) : QWidget( parent, name )
+a39 2
+  //setMinimumSize( 300, 200 );
+  //setMaximumSize( 300, 200 );
+d70 3
+a72 1
+  //connect(this, SIGNAL(recognizing()), led_recognition, SLOT(toggle()));
+d111 1
+d130 1
+a130 1
+void SpeakerModel::reset()
+d150 2
+d153 2
+d160 3
+a162 1
+  bool ok = true;
+d164 1
+a164 6
+  if (has_changed())
+    ok = ask_save_changes();
+  else
+    ok = true;
+
+  if (ok)
+d166 1
+a166 5
+    detect_mode_off();
+
+    QString filename_tmp = fdialog->getOpenFileName(NULL, "*.spk", NULL, "fdialog");
+    
+    if (filename_tmp != NULL)
+a167 2
+      reset();
+      
+d262 3
+a264 5
+  //led_record->off();
+  //led_record->paintEvent(0);
+  //KLedLamp::State s = KLedLamp::Off;
+  led_record->setState(KLedLamp::Off);
+  
+d270 4
+d281 1
+a281 8
+void SpeakerModel::toggle_recognition()
+{
+  led_recognition->setState(KLedLamp::On);
+  paintEvent(0);
+}
+
+
+bool SpeakerModel::test_utterance()
+a282 3
+  led_recognition->setState(KLedLamp::On);
+  paintEvent(0);
+  
+d284 4
+d292 1
+a292 2
+  cerr << "please wait ... recognition in progress" << endl;
+  led_recognition->on();
+a312 2
+      //led_recognition->toggleState();
+
+a320 2
+
+
+d341 2
+a342 1
+    cerr << "RESULT: Nothing matched !!!!!" << endl;
+a343 2
+    led_recognition->off();
+    return false;
+d347 2
+a348 1
+    cerr << "RESULT: OK -> " << hypo << endl;
+a362 3
+  
+    led_recognition->off();
+    return true;
+d369 3
+a371 2
+    { 
+      cerr << "RESULT: different first and second hypo have too similar scores (" << dist << ")" << endl;
+a372 2
+      led_recognition->off();
+      return false;
+d376 3
+a378 1
+      cerr << "RESULT: OK (" << dist << ") -> " << hypo << endl;
+a392 3
+      
+      led_recognition->off();
+      return true;
+d396 1
+@
+
+
+1.2
+log
+@detect_mode_off works fine now
+options dialog implemented
+save_config methode introduced (not yet working properly!!)
+@
+text
+@d3 1
+a3 1
+ * $Id: speakermodel.cpp,v 1.1 1998/04/26 15:57:19 daniel Exp daniel $
+d6 5
+d35 2
+a36 2
+  setMinimumSize( 300, 200 );
+  setMaximumSize( 300, 200 );
+d44 1
+a44 1
+  QPushButton *new_reference_btn = new QPushButton( "New", this, "new_reference" );
+d47 1
+a47 1
+  QPushButton *edit_reference_btn = new QPushButton( "Edit ...", this, "edit_reference" );
+d50 1
+a50 1
+  QPushButton *delete_reference_btn = new QPushButton( "Delete", this, "delete_reference" );
+d60 9
+d244 3
+d259 7
+d278 7
+d287 3
+d296 1
+d317 2
+d326 3
+d351 1
+d372 1
+d383 1
+d404 1
+d600 29
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d3 5
+a7 1
+ * $Id: $
+a8 1
+ * $Log: $
+d22 1
+d28 1
+a28 1
+SpeakerModel::SpeakerModel(QWidget *parent, const char *name) : QWidget( parent, name )
+a53 1
+  buffer->set_rec_level(8);
+d58 34
+a91 2
+  score_threshold = 9.0;
+  min_distance = 3.0;
+d256 2
+d310 1
+d319 1
+a319 2
+      cerr << "DETECT OFF" << endl;
+      detect_mode_off();
+d321 6
+a326 7
+    
+    /*
+    command = command.stripWhiteSpace();
+    if (command.right(1) != "&")
+      command.append(" &");
+    system(command);
+    */
+d328 3
+d339 2
+a340 1
+      cerr << "RESULT: First and second are too similar (" << dist << ")" << endl;
+d349 1
+a349 2
+	cerr << "DETECT OFF" << endl;
+	detect_mode_off();
+d351 2
+a352 2
+
+      /*
+d355 1
+a355 1
+	command.append(" &");
+a356 1
+      */
+d358 4
+a361 1
+     return true;
+d364 1
+d515 41
+@

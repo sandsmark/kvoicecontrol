@@ -1,0 +1,35 @@
+KvoiceControl TODO-list
+=======================
+
+General:
+- source code documentation
+- save options -> see BUGS/PROBLEMS
+- i18n
+- icons etc.
+- store low resolution wave along with preprocessed utterance 
+  (saves memory but enables to implement a double-click-to-replay function in ReferenceEditor
+- lock screen should disallow KVoiceControl from accepting input
+
+Sound card:
+- Mixer program (kmix) does not work on some notebooks
+
+Preprocessing:
+- amplitude normalization (?)
+
+Recognizer:
+- improved rejection of non-speech input signals
+
+
+BUGS/PROBLEMS:
+- up to now, one can interact with the program while it is recording;
+  this can lead to problems, but can simply be avoided by behaving
+  "non-destructively" ;-)
+- save options is implemented but not yet working ?!
+
+(HOPEFULLY) FIXED BUGS
+- some people complained about the object dialog not popping up correctly 
+  (it's about 5 pixels high)
+- sound card should have well-defined initial status now. This should avoid messages
+  like (can't open soundcard: Device or resource busy)
+- some sound driver's didn't show mic level properly in calibration dialog. This
+  should be fixed now!

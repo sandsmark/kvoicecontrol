@@ -1,0 +1,882 @@
+head	1.10;
+access;
+symbols
+	beforeConnectedTry:1.5
+	branchAndBound:1.5
+	dockingToPanelNow:1.5;
+locks; strict;
+comment	@// @;
+
+
+1.10
+date	99.01.02.08.10.50;	author kiecza;	state Exp;
+branches;
+next	1.9;
+
+1.9
+date	99.01.02.08.04.49;	author kiecza;	state Exp;
+branches;
+next	1.8;
+
+1.8
+date	98.12.17.01.49.55;	author kiecza;	state Exp;
+branches;
+next	1.7;
+
+1.7
+date	98.06.14.12.55.09;	author daniel;	state Exp;
+branches;
+next	1.6;
+
+1.6
+date	98.06.02.10.33.54;	author daniel;	state Exp;
+branches;
+next	1.5;
+
+1.5
+date	98.04.29.02.08.17;	author daniel;	state Exp;
+branches;
+next	1.4;
+
+1.4
+date	98.04.27.23.56.55;	author daniel;	state Exp;
+branches;
+next	1.3;
+
+1.3
+date	98.04.27.19.44.43;	author daniel;	state Exp;
+branches;
+next	1.2;
+
+1.2
+date	98.04.27.00.23.24;	author daniel;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	98.04.26.15.57.35;	author daniel;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.10
+log
+@removed RCS log history from file header
+@
+text
+@/*********************************************************************************
+ *
+ * $Id: buffer.cpp,v 1.9 1999/01/02 08:04:49 kiecza Exp kiecza $
+ *
+ *********************************************************************************/
+
+#include "buffer.moc"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/soundcard.h>
+#include <sys/ioctl.h>
+
+#include <qobject.h>
+#include <qmsgbox.h>
+#include <qdialog.h>
+#include <qpushbt.h>
+#include <qlabel.h>
+#include <qstring.h>
+
+#include <iostream.h>
+
+#include <klocale.h>
+
+//# define cpu_to_le32(x) (x)
+//# define cpu_to_le16(x) (x)
+//# define le32_to_cpu(x) (x)
+//# define le16_to_cpu(x) (x)
+
+/* #define _(TEXT) klocale->translate(TEXT) */
+#define _(TEXT) TEXT
+
+/* ---------------------------------------------------------------------- */
+
+void xperror(char *msg)
+{
+  char text[256];
+
+  sprintf(text,"%s: %s", msg, strerror(errno));
+  QMessageBox::about(NULL, _("Error"), text);
+}
+
+/* ---------------------------------------------------------------------- */
+
+#define BLOCK_SIZE   2048
+
+
+SoundBuffer::SoundBuffer()
+{
+  card    = new Soundcard(NULL);
+  
+  rec_level  = 0;
+  stop_level = 3;
+  level_distance = 5;
+  wait      = 0;
+  
+  recording = false;
+  playing   = false;
+  
+  get_another_buffer = false;
+  postfetch_N        = 1;
+  postfetch_count    = 0;
+  
+  size     = BLOCK_SIZE*1500;
+  buffer   = new short[size];
+  position      = 0;
+  position_play = 0;
+
+  prefetch_N     = 2;
+  prefetch_pos   = 0;
+  prefetch       = new short[BLOCK_SIZE*prefetch_N];
+
+  accept_low_N = 4;
+  accept_low_count = 0;
+
+  replay = false;
+
+  do_calibrate = false;
+  calibrate_what = 0;
+
+  connect(card, SIGNAL(senddata(void*)),    this, SLOT(new_data(void*)));
+  connect(card, SIGNAL(receivedata(void*)), this, SLOT(post_data(void*)));
+}
+
+
+SoundBuffer::~SoundBuffer()
+{
+  delete prefetch;
+  delete buffer;
+
+  delete card;
+}
+
+
+void* SoundBuffer::read_audio(int len)
+{
+  void* ptr;
+  if (position_play+(int)(len/sizeof(short)) > position)
+    return NULL;
+  ptr = buffer + position_play;
+  position_play += len/sizeof(short);
+  return ptr;
+}
+
+
+int SoundBuffer::write_audio(int len, void *data)
+{
+  if (position+(int)(len/sizeof(short)) < size)
+  {
+    memcpy(buffer+position, data, len);
+    position += len/sizeof(short);
+    return 0;
+  }
+  else
+    return -1;
+}
+
+
+int SoundBuffer::prefetch_audio(int len, void *data)
+{
+  memcpy((prefetch+prefetch_pos*(len)), data, len);
+  prefetch_pos = (prefetch_pos+1)%prefetch_N;
+  
+  return 0;
+}
+
+
+void SoundBuffer::new_data(void *data)
+{
+  int   i,max;
+  short *s;
+
+  if (do_calibrate)
+  {
+    switch (calibrate_what)
+    {
+    case 0: // ***** nothing
+      break;
+    case 1: // ***** stop level
+      {
+	int cal_val;
+	for (i = ((BLOCK_SIZE*sizeof(short))>>1)-1, s=(short*)data, cal_val = 0; i; i--)
+	  if (s[i] > cal_val)
+	    cal_val = s[i];
+	cal_val = cal_val * 100 / 32768;
+	
+	QString s;
+	s.sprintf("%d", cal_val);
+	stop_level_msg->setText( s );
+      }
+      break;
+    case 2: // ***** start level
+      calibrate_count--;
+      if (calibrate_count <= 0)
+      {
+	// finish calibrating start level
+
+	if (cal_start_level_count > 0)
+	  cal_start_level = (2*(cal_start_level_sum/cal_start_level_count)+1*cal_start_level_min)/3;
+	else
+	  cal_start_level = 0;
+
+	//fprintf(stderr, "start_level: %d\n", cal_start_level);
+		
+	detect_speech(false);
+	calibrate_micro();
+      }
+      else
+      {
+	int cal_max;
+	
+	for (i = ((BLOCK_SIZE*sizeof(short))>>1)-1, s=(short*)data, cal_max = 0; i; i--)
+	  if (s[i] > cal_max)
+	    cal_max = s[i];
+	
+	cal_max = cal_max * 100 / 32768;
+
+	//fprintf(stderr, "start_level: Max %d\n", cal_max);
+	
+	if (cal_max > stop_level)
+	{
+	  cal_start_level_sum += cal_max;
+	  cal_start_level_count++;
+	  
+	  if (cal_max < cal_start_level_min)
+	    cal_start_level_min = cal_max;
+	}
+      }
+    }
+  }
+  else
+  {
+    if (wait && !playing) 
+    {
+      // ***** prefetch buffers
+      
+      prefetch_audio(BLOCK_SIZE*sizeof(short),data);
+      
+      for (i = ((BLOCK_SIZE*sizeof(short))>>1)-1, s=(short*)data, max = 0; i; i--)
+	if (s[i] > max)
+	  max = s[i];
+      max = max * 100 / 32768;
+      
+      //fprintf(stderr, "MAX: %d\n", max);
+      
+      if (max >= rec_level) 
+      {
+	wait = 0;
+	//fprintf(stderr, "recording...");
+	recording = true;
+      } 
+      else
+	return;
+    }
+    else
+      if (recording) 
+      {
+	//cerr  << "activ" << endl;
+	emit recording_active();
+	
+	if (get_another_buffer)
+	{
+	  if (postfetch_count > 0)
+	  {
+	    postfetch_count--;
+	    write_audio(BLOCK_SIZE*sizeof(short),data);
+	  }
+	  else
+	  {
+	    get_another_buffer = false;
+	    //fprintf(stderr, "done\n");
+	    stop();
+	  }
+	}
+	else
+	{
+	  for (i = ((BLOCK_SIZE*sizeof(short))>>1)-1, s=(short*)data, max = 0; i; i--)
+	    if (s[i] > max)
+	      max = s[i];
+	  max = max * 100 / 32768;
+	  
+	  //fprintf(stderr, "MAX: %d\n", max);
+	  
+	  if (accept_low_count >= accept_low_N)
+	  {
+	    get_another_buffer = true;
+	    accept_low_count=0;
+	  }
+	  else
+	  {
+	    if (max <= stop_level)
+	      accept_low_count++;
+	    else
+	      accept_low_count = 0;
+	    
+	    // ***** finish before buffer space exceeds
+	    
+	    if (size - position < (int)(BLOCK_SIZE*sizeof(short)*(1+postfetch_N+prefetch_N)))
+	    {
+	      get_another_buffer = true;
+	      printf("underrun near! -> stop\n");
+	    }
+	    
+	    write_audio(BLOCK_SIZE*sizeof(short),data);
+	  }
+	}
+      }
+  }
+}
+
+
+ 
+void SoundBuffer::post_data(void *data)
+{
+  void *ptr;
+  
+  if (NULL == (ptr = read_audio(card->get_blocksize()))) 
+  {
+    memset(data,0,card->get_blocksize());
+    stop();
+    return;
+  }
+  memcpy(data,ptr,card->get_blocksize());
+}
+
+
+void SoundBuffer::set_stop_level(int l)
+{
+  stop_level = l;
+}
+
+
+bool SoundBuffer::record()
+{
+  if (-1 == card->start_record()) 
+  {
+    xperror(_("can't open soundcard"));
+    return false;
+  }
+
+  position           = 0;
+  postfetch_count    = postfetch_N;
+  get_another_buffer = false;
+  prefetch_pos       = 0;
+  wait               = 1;
+   
+  return true;
+}
+
+ 
+bool SoundBuffer::play()
+{
+  position_play=0;
+  if (-1 == card->start_playback()) 
+  {
+    xperror(_("can't open soundcard"));
+    return false;
+  }
+  playing=true;
+  return true;
+}
+
+
+void SoundBuffer::stop()
+{
+  if (recording) 
+  {
+    recording = false;    
+    card->stop();
+    wait = 0;
+    
+    // ***** put prefetch und buffer together
+
+    short *tmpbuffer = new short[size];
+    memcpy((tmpbuffer+prefetch_N*BLOCK_SIZE), buffer, position*sizeof(short));
+    memset(tmpbuffer, 0, prefetch_N*BLOCK_SIZE*sizeof(short));
+    for (int i=prefetch_pos, j=0; i<prefetch_pos+prefetch_N; i++, j++)
+    {
+      void *to   = (tmpbuffer+j*BLOCK_SIZE);
+      void *from = (prefetch+(i%prefetch_N)*BLOCK_SIZE*sizeof(short));
+      memcpy(to, from, BLOCK_SIZE*sizeof(short));
+    }
+
+    delete buffer;
+    buffer = tmpbuffer;
+    position += prefetch_N*BLOCK_SIZE;
+
+
+    if (replay)
+      play();
+    else
+      emit end_detected();
+  }
+  else if (playing) 
+  {
+    playing = false;
+    emit end_detected();
+  }
+}
+
+
+bool SoundBuffer::detect_speech(bool detect)
+{
+  if (detect)
+  {
+    if (!recording)
+    {
+      return(record());
+    }
+    else
+      return true;
+  }
+  else
+  {
+    card->stop();
+    playing   = false;
+    recording = false;
+    wait = 0;
+    return true;
+  }
+}
+
+
+bool SoundBuffer::is_detect_mode()
+{
+  if (wait==1||recording)
+    return true;
+  else
+    return false;
+}
+
+
+void SoundBuffer::do_replay(bool _r)
+{
+  replay = _r;
+}
+
+
+short *SoundBuffer::get_data()
+{
+  return buffer;
+}
+
+
+int SoundBuffer::get_size()
+{
+  return position;
+}
+
+
+void SoundBuffer::calibrate_micro()
+{
+  do_calibrate = true;
+  
+  switch (calibrate_what)
+  {
+  case 0: // ***** prepare for stop level calibration
+    QMessageBox::about(NULL, _("Calibration"), "Calibrating silence now.\nAdjust MICROPHONE IN level (use kmix)\nso that the silence level displayed in the next dialog\nis stable at zero!\nPush button to continue!");  
+    calibrate_what = 1;
+   
+    stop_level_dlgbox = new QDialog(0, _("Calibration"), FALSE);
+
+    QLabel *stop_level_msg_lbl;
+    stop_level_msg_lbl = new QLabel(stop_level_dlgbox);
+    //stop_level_msg_lbl->setFrameStyle( QFrame::Panel);
+    stop_level_msg_lbl->setAlignment( AlignVCenter | AlignRight );
+    stop_level_msg_lbl->setText( "Level:" );
+    stop_level_msg_lbl->setGeometry( 10,10, 50,20 );
+
+    stop_level_msg = new QLabel(stop_level_dlgbox);
+    stop_level_msg->setFrameStyle( QFrame::Panel | QFrame::Sunken );
+    stop_level_msg->setAlignment( AlignVCenter | AlignRight );
+    stop_level_msg->setText( "" );
+    stop_level_msg->setGeometry( 70,10, 22,20 );
+
+    QPushButton *ok;
+    ok = new QPushButton( "Ok", stop_level_dlgbox );
+    ok->setGeometry( 20,40, 80,20 );
+    connect( ok, SIGNAL(clicked()), SLOT(cal_stop_level_done()) );
+
+    stop_level_dlgbox->show();
+
+    detect_speech(true);
+    break;
+  case 1:  // ***** prepare for start level calibration
+    QMessageBox::about(NULL, _("Calibration"), "Calibrating speech signal now.\nPush button and talk to your micro\nuntil the next dialog appears!");
+    cal_start_level_sum = 0;
+    cal_start_level_min = 1000;
+    cal_start_level_count = 0;
+    calibrate_count = 50;
+    calibrate_what = 2;
+    detect_speech(true);
+    break;
+  case 2:  // ***** done
+    do_calibrate = false;
+    calibrate_what = 0;
+    if (cal_start_level >= stop_level+level_distance)
+    {
+      rec_level  = cal_start_level;
+   
+      QMessageBox::about(NULL, _("Calibration"), "Calibration done!");
+    }
+    else
+    {
+      QMessageBox::about(NULL, _("Calibration"), "Calibration failed! Push OK to restart!");
+      do_calibrate = true;
+      calibrate_micro();
+    }
+    break;
+  }
+
+}
+
+
+void SoundBuffer::cal_stop_level_done()
+{
+  // finish calibrating stop level
+	
+  detect_speech(false);
+  delete stop_level_dlgbox;
+  calibrate_micro();
+}
+@
+
+
+1.9
+log
+@is_detect_mode corrrected
+@
+text
+@d3 1
+a3 28
+ * $Id: buffer.cpp,v 1.8 1998/12/17 01:49:55 kiecza Exp kiecza $
+ *
+ * $Log: buffer.cpp,v $
+ * Revision 1.8  1998/12/17 01:49:55  kiecza
+ * new method is_detect_mode() tells whether the buffer is in autorecording mode
+ *
+ * Revision 1.7  1998/06/14 12:55:09  daniel
+ * stop_level calibration has to be done by the user by adjusting MIC IN within kmix!
+ *
+ * Revision 1.6  1998/06/02 10:33:54  daniel
+ * microphone calibration added
+ *
+ * Revision 1.5  1998/04/29 02:08:17  daniel
+ * record(), play() and detect_speech() return bool now instead of void
+ *
+ * Revision 1.4  1998/04/27 23:56:55  daniel
+ * removed printf output "recording ... done"
+ *
+ * Revision 1.3  1998/04/27 19:44:43  daniel
+ * now emitting new signal recording_active, used for LED-control
+ *
+ * Revision 1.2  1998/04/27 00:23:24  daniel
+ * did some code cleaning so that the voice control detect_mode_off command
+ * works properly
+ *
+ * Revision 1.1  1998/04/26 15:57:35  daniel
+ * Initial revision
+ *
+@
+
+
+1.8
+log
+@new method is_detect_mode() tells whether the buffer is in autorecording mode
+@
+text
+@d3 1
+a3 1
+ * $Id: buffer.cpp,v 1.7 1998/06/14 12:55:09 daniel Exp kiecza $
+d6 3
+d417 4
+a420 1
+  return recording;
+@
+
+
+1.7
+log
+@stop_level calibration has to be done by the user by adjusting MIC IN within kmix!
+@
+text
+@d3 1
+a3 1
+ * $Id: buffer.cpp,v 1.6 1998/06/02 10:33:54 daniel Exp daniel $
+d6 3
+d409 6
+@
+
+
+1.6
+log
+@microphone calibration added
+@
+text
+@d3 1
+a3 1
+ * $Id: buffer.cpp,v 1.5 1998/04/29 02:08:17 daniel Exp daniel $
+d6 3
+d41 4
+d78 2
+a79 1
+  stop_level = 5;
+a104 1
+  cal_stop_level = 0;
+a164 11
+      calibrate_count--;
+      if (calibrate_count <= 0)
+      {
+	// finish calibrating stop level
+	
+	fprintf(stderr, "stop_level: %d\n", cal_stop_level);
+	
+	detect_speech(false);
+	calibrate_micro();
+       }
+      else
+a166 1
+	
+a169 1
+	
+d172 3
+a174 2
+	if (cal_val < cal_stop_level)
+	  cal_stop_level = cal_val;
+d188 1
+a188 1
+	fprintf(stderr, "start_level: %d\n", cal_start_level);
+d205 1
+a205 1
+	if (cal_max > cal_stop_level)
+d434 1
+a434 3
+    QMessageBox::about(NULL, _("Calibration"), "Calibrating silence now.\nPush button and be quiet for a moment!");  
+    cal_stop_level = 1000;
+    calibrate_count = 20;
+d436 23
+d473 1
+a473 1
+    if (cal_stop_level < cal_start_level)
+a475 1
+      stop_level = cal_stop_level;
+d488 10
+@
+
+
+1.5
+log
+@record(), play() and detect_speech() return bool now instead of void
+@
+text
+@d3 1
+a3 1
+ * $Id: buffer.cpp,v 1.4 1998/04/27 23:56:55 daniel Exp daniel $
+d6 3
+d71 1
+a71 1
+  stop_level = 0;
+d95 4
+d151 1
+a151 1
+  if (wait && !playing) 
+d153 34
+a186 1
+    // ***** prefetch buffers
+d188 4
+a191 21
+    prefetch_audio(BLOCK_SIZE*sizeof(short),data);
+    
+    for (i = ((BLOCK_SIZE*sizeof(short))>>1)-1, s=(short*)data, max = 0; i; i--)
+      if (s[i] > max)
+	max = s[i];
+    max = max * 100 / 32768;
+          
+    if (max >= rec_level) 
+    {
+      wait = 0;
+      //fprintf(stderr, "recording...");
+      recording = true;
+    } 
+    else
+      return;
+  }
+  else
+  if (recording) 
+  {
+    //cerr  << "activ" << endl;
+    emit recording_active();
+d193 4
+a196 6
+    if (get_another_buffer)
+    {
+      if (postfetch_count > 0)
+      {
+	postfetch_count--;
+	write_audio(BLOCK_SIZE*sizeof(short),data);
+d200 18
+a217 3
+	get_another_buffer = false;
+	//fprintf(stderr, "done\n");
+	stop();
+d220 4
+a223 1
+    else
+d225 4
+d234 3
+a236 1
+      if (accept_low_count >= accept_low_N)
+d238 4
+a241 3
+	get_another_buffer = true;
+	accept_low_count=0;
+      }
+d243 4
+d248 17
+a264 2
+	if (max <= stop_level)
+	  accept_low_count++;
+a265 5
+	  accept_low_count = 0;
+ 
+	// ***** finish before buffer space exceeds
+
+	if (size - position < (int)(BLOCK_SIZE*sizeof(short)*(1+postfetch_N+prefetch_N)))
+d267 29
+a295 2
+	  get_another_buffer = true;
+	  printf("underrun near! -> stop\n");
+a296 2
+	 
+	write_audio(BLOCK_SIZE*sizeof(short),data);
+a297 1
+    }
+d301 1
+d432 42
+@
+
+
+1.4
+log
+@removed printf output "recording ... done"
+@
+text
+@d3 1
+a3 1
+ * $Id: buffer.cpp,v 1.3 1998/04/27 19:44:43 daniel Exp daniel $
+d6 3
+d36 2
+d167 1
+d202 1
+a202 1
+
+d210 1
+a210 1
+	
+d217 1
+a217 1
+
+d238 1
+a238 1
+void SoundBuffer::record()
+d243 1
+a243 1
+    return;
+d251 2
+d255 2
+a256 2
+
+void SoundBuffer::play()
+d262 1
+a262 1
+    return;
+d265 1
+d307 1
+a307 1
+void SoundBuffer::detect_speech(bool detect)
+d313 1
+a313 1
+      record();
+d315 2
+d324 1
+@
+
+
+1.3
+log
+@now emitting new signal recording_active, used for LED-control
+@
+text
+@d3 1
+a3 1
+ * $Id: buffer.cpp,v 1.2 1998/04/27 00:23:24 daniel Exp daniel $
+d6 3
+d153 1
+a153 1
+      fprintf(stderr, "recording...");
+d174 1
+a174 1
+	fprintf(stderr, "done\n");
+@
+
+
+1.2
+log
+@did some code cleaning so that the voice control detect_mode_off command
+works properly
+@
+text
+@d3 1
+a3 1
+ * $Id: buffer.cpp,v 1.1 1998/04/26 15:57:35 daniel Exp daniel $
+d6 4
+d159 2
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d3 5
+a7 1
+ * $Id: $
+a8 1
+ * $Log: $
+a216 6
+void SoundBuffer::set_rec_level(int l)
+{
+  rec_level = l;
+}
+
+
+d257 2
+a258 1
+
+a274 1
+    emit end_detected();
+d279 1
+a279 1
+      record();
+d284 1
+a284 1
+    record();
+a303 1
+    
+@

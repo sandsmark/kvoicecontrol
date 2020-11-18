@@ -1,0 +1,185 @@
+/****************************************************************************
+** Soundcard meta object code from reading C++ file 'soundcard.h'
+**
+** Created: Wed Apr 21 18:08:45 1999
+**      by: The Qt Meta Object Compiler ($Revision: 2.25.2.11 $)
+**
+** WARNING! All changes made in this file will be lost!
+*****************************************************************************/
+
+#if !defined(Q_MOC_OUTPUT_REVISION)
+#define Q_MOC_OUTPUT_REVISION 2
+#elif Q_MOC_OUTPUT_REVISION != 2
+#error "Moc format conflict - please regenerate all moc files"
+#endif
+
+#include "soundcard.h"
+#include <qmetaobject.h>
+
+
+const char *Soundcard::className() const
+{
+    return "Soundcard";
+}
+
+QMetaObject *Soundcard::metaObj = 0;
+
+
+#if QT_VERSION >= 200
+static QMetaObjectInit init_Soundcard(&Soundcard::staticMetaObject);
+
+#endif
+
+void Soundcard::initMetaObject()
+{
+    if ( metaObj )
+	return;
+    if ( strcmp(QObject::className(), "QObject") != 0 )
+	badSuperclassWarning("Soundcard","QObject");
+
+#if QT_VERSION >= 200
+    staticMetaObject();
+}
+
+void Soundcard::staticMetaObject()
+{
+    if ( metaObj )
+	return;
+    QObject::staticMetaObject();
+#else
+
+    QObject::initMetaObject();
+#endif
+
+    typedef void(Soundcard::*m1_t0)(int);
+    m1_t0 v1_0 = &Soundcard::sounddata;
+    QMetaData *slot_tbl = new QMetaData[1];
+    slot_tbl[0].name = "sounddata(int)";
+    slot_tbl[0].ptr = *((QMember*)&v1_0);
+    typedef void(Soundcard::*m2_t0)(void*);
+    typedef void(Soundcard::*m2_t1)(void*);
+    typedef void(Soundcard::*m2_t2)(struct SOUNDPARAMS*);
+    m2_t0 v2_0 = &Soundcard::senddata;
+    m2_t1 v2_1 = &Soundcard::receivedata;
+    m2_t2 v2_2 = &Soundcard::newparams;
+    QMetaData *signal_tbl = new QMetaData[3];
+    signal_tbl[0].name = "senddata(void*)";
+    signal_tbl[1].name = "receivedata(void*)";
+    signal_tbl[2].name = "newparams(struct SOUNDPARAMS*)";
+    signal_tbl[0].ptr = *((QMember*)&v2_0);
+    signal_tbl[1].ptr = *((QMember*)&v2_1);
+    signal_tbl[2].ptr = *((QMember*)&v2_2);
+    metaObj = new QMetaObject( "Soundcard", "QObject",
+	slot_tbl, 1,
+	signal_tbl, 3 );
+}
+
+#include <qobjectdefs.h>
+#if QT_VERSION >= 141
+// newer implementation
+#include <qsignalslotimp.h>
+#else
+// for late-model 1.x header files
+#if !defined(Q_MOC_CONNECTIONLIST_DECLARED)
+#define Q_MOC_CONNECTIONLIST_DECLARED
+#include <qlist.h>
+Q_DECLARE(QListM,QConnection);
+Q_DECLARE(QListIteratorM,QConnection);
+#endif
+#endif
+
+// SIGNAL senddata
+void Soundcard::senddata( void* t0 )
+{
+    QConnectionList *clist = receivers("senddata(void*)");
+    if ( !clist || signalsBlocked() )
+	return;
+    typedef void (QObject::*RT0)();
+    typedef RT0 *PRT0;
+    typedef void (QObject::*RT1)(void*);
+    typedef RT1 *PRT1;
+    RT0 r0;
+    RT1 r1;
+    QConnectionListIt it(*clist);
+    QConnection   *c;
+    QSenderObject *object;
+    while ( (c=it.current()) ) {
+	++it;
+	object = (QSenderObject*)c->object();
+	object->setSender( this );
+	switch ( c->numArgs() ) {
+	    case 0:
+		r0 = *((PRT0)(c->member()));
+		(object->*r0)();
+		break;
+	    case 1:
+		r1 = *((PRT1)(c->member()));
+		(object->*r1)(t0);
+		break;
+	}
+    }
+}
+
+// SIGNAL receivedata
+void Soundcard::receivedata( void* t0 )
+{
+    QConnectionList *clist = receivers("receivedata(void*)");
+    if ( !clist || signalsBlocked() )
+	return;
+    typedef void (QObject::*RT0)();
+    typedef RT0 *PRT0;
+    typedef void (QObject::*RT1)(void*);
+    typedef RT1 *PRT1;
+    RT0 r0;
+    RT1 r1;
+    QConnectionListIt it(*clist);
+    QConnection   *c;
+    QSenderObject *object;
+    while ( (c=it.current()) ) {
+	++it;
+	object = (QSenderObject*)c->object();
+	object->setSender( this );
+	switch ( c->numArgs() ) {
+	    case 0:
+		r0 = *((PRT0)(c->member()));
+		(object->*r0)();
+		break;
+	    case 1:
+		r1 = *((PRT1)(c->member()));
+		(object->*r1)(t0);
+		break;
+	}
+    }
+}
+
+// SIGNAL newparams
+void Soundcard::newparams( struct SOUNDPARAMS* t0 )
+{
+    QConnectionList *clist = receivers("newparams(struct SOUNDPARAMS*)");
+    if ( !clist || signalsBlocked() )
+	return;
+    typedef void (QObject::*RT0)();
+    typedef RT0 *PRT0;
+    typedef void (QObject::*RT1)(struct SOUNDPARAMS*);
+    typedef RT1 *PRT1;
+    RT0 r0;
+    RT1 r1;
+    QConnectionListIt it(*clist);
+    QConnection   *c;
+    QSenderObject *object;
+    while ( (c=it.current()) ) {
+	++it;
+	object = (QSenderObject*)c->object();
+	object->setSender( this );
+	switch ( c->numArgs() ) {
+	    case 0:
+		r0 = *((PRT0)(c->member()));
+		(object->*r0)();
+		break;
+	    case 1:
+		r1 = *((PRT1)(c->member()));
+		(object->*r1)(t0);
+		break;
+	}
+    }
+}

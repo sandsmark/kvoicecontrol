@@ -1,0 +1,311 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.5 [en] (X11; I; Linux 2.0.34 i686) [Netscape]">
+   <meta name="Author" content="Daniel Kiecza">
+   <title>KVoiceControl Help</title>
+</head>
+<body>
+
+<center>
+<h1>
+KVoiceControl- User's Guide</h1></center>
+
+<h3>
+
+<hr WIDTH="100%">Introduction</h3>
+KVoiceControl is a tool that gives you voice control over your unix commands.
+It uses a template matching based <b>speaker dependent</b> isolated word
+recognition system with non-linear time normalization (DTW).
+<p>Note, that isolated word does <b>not</b> necessarily mean <b>one single</b>
+word. It just describes a class of recognition systems among
+<ul>
+<li>
+&nbsp;isolated word</li>
+
+<li>
+&nbsp;connected words</li>
+
+<li>
+&nbsp;continuous speech</li>
+
+<li>
+&nbsp;spontaneous speech</li>
+</ul>
+<u>Consider the following example:</u>
+<p>KVoiceControl knows five utterances (being connected to appropriate
+commands ...)
+<ul>
+<li>
+<i>&lt;connect to internet></i></li>
+
+<li>
+<i>&lt;netscape communicator></i></li>
+
+<li>
+<i>&lt;one xterm please></i></li>
+
+<li>
+<i>&lt;launch emacs NOT VI!></i></li>
+
+<li>
+<i>&lt;how are you today?></i></li>
+</ul>
+So the recognition vocabulary consists of five "words" (=utterances) that
+can only be recognized one at a time, i.e
+<br>you <b>cannot</b> connect the words to build "sentences" like "<i>&lt;how
+are you today?> please launch &lt;netscape communicator> and &lt;connect
+to internet></i>"!
+<center>
+<p><b><u>Important Note:</u></b></center>
+
+<p>As mentioned above you do not need to use one single word as an utterance
+- and it is strongly recommended to use <b>longer sequences</b> !!!!! This
+is due to the base concept of this recognition system: template matching.
+So if you used short commands like say <i>&lt;xterm></i> and <i>&lt;xedit></i>
+confusability would be increased significantly and therefore recognition
+accuracy drops rapidly!!!
+<p>
+<hr WIDTH="100%">
+<h3>
+Basics</h3>
+KVoiceControl uses a <b>speakermodel</b> that contains sample utterances
+for the recognition process.
+<br>These speakermodels can be loaded/saved, so one can create different
+speakermodels for different speakers or even have different models for
+the same speaker.
+<p>A speakermodel contains references that consist of the following elements
+<b>(*)</b>:
+<ul>
+<li>
+The reference's name (that means normally you would enter here what is
+being said)</li>
+
+<li>
+The command to execute (when KVoiceControl has recognized this reference)</li>
+
+<li>
+Sample Utterances for this reference</li>
+</ul>
+All The references are listed within the ListBox of KVoiceControl's main
+GUI.
+<p>
+<hr WIDTH="100%">
+<h3>
+Edit References</h3>
+The Buttons to the right of the ListBox can be used to edit the references.
+<ul>
+<li>
+<b>New</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; create a new reference (untitled)
+and add it to the ListBox</li>
+
+<li>
+<b>Delete</b>&nbsp; delete a reference from the list</li>
+
+<li>
+<b>Edit ...</b>&nbsp; invokes the reference editor dialog....</li>
+</ul>
+Within the reference editor one can adjust the stuff listed at <b>(*)</b>.
+<br><b>Text</b> contains the name of the reference, <b>Command</b> contains
+the command(-sequence) to be executed.
+<p><b>Note:</b> There are several special commands that can be used to
+control KVoiceControl itself:
+<ul>
+<li>
+<b>detectModeOff</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+can be used to switch off recognition mode</li>
+
+<li>
+<b>openFile=&lt;filename.spk></b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+replaces the currently loaded speakermodel by the speakermodel stored in
+<i>filename.spk</i></li>
+
+<li>
+<b>appendFile=&lt;filename.spk></b>&nbsp;&nbsp;&nbsp; add the speakermodel
+stored in <i>filename.spk</i> to the currently loaded speakermodel</li>
+
+<li>
+<b>openDir=&lt;dirname>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+replaces the currently loaded speakermodel by the speakermodel stored in
+<i>&lt;dirname>/index.spk</i></li>
+
+<li>
+<b>appendDir=&lt;dirname>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+add the speakermodel stored in <i>&lt;dirname>/index.spk</i> to the currently
+loaded speakermodel</li>
+
+<li>
+<b>@&lt;command></b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+prepending a command with an '@' tells kvoicecontrol to execute the command
+while recognition</li>
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+mode is switched off, after that it switches recognition mode back on!
+That way you can realize
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+calls to speech synthesis software (speech feedback) on non-duplex sound
+cards (or non-duplex
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+sound drivers!).</ul>
+A command can consists of a sequence of commands. Use a <b>semicolon</b>
+to separate the commands!
+<br>Example: Say we have a programm <b>tell</b> that takes an ASCII string
+and hands it to a speech synthesis software. Then we can have a sequence
+like:
+<center><b>tell "Yes Master, of course I can start netscape for you";netscape</b></center>
+
+<p>The commands <i>openFile=</i>, <i>appendFile=</i>, <i>openDir=</i>,
+<i>appendDir=</i>
+can be used to create a hierarchical structure off utterances (a simple
+grammar if you want)
+<br>For instance a tree structure like [[tell-me [time | date]] | sound
+[ cd-player [ stop | start | play | eject]]] and so forth....
+<p>The ListBox below contains the sample utterances for this reference.
+<br><b>You should enter between two and five (or even more) sample utterances
+per reference</b> in order to ensure good recognition performance! (The
+more the better, but the more machine power is needed!)
+<p>You can use the button <b>Enable Autorecording ...</b> to switch to
+auto speech signal detection mode, i.e. in this mode KVoiceControl automatically
+detects signals coming from the soundcard (the button's background color
+is red while kvoicecontrol is listening). Thus <b>your sample utterance
+is being recorded automagically! -> Just speak!</b>
+<br>BTW: A pre- and a postfetch sound buffer ensure that the signal is
+not cut off dramatically, so automatic recording is working fine!
+<br>Recorded utterances are always being <b>replayed</b> to your soundcard,
+so you can check whether the recording was OK! After recording (and preprocessing)
+the <b>utterance is being added to the listbox </b>using actual system
+date and time as the entry name. Broken utterances can be deleted using
+the <b>Delete</b> button.
+<p>After one utterance has been recorded, preprocessed and added to the
+utterance list, KVoiceControl <b>does not</b> automatically switch to signal
+detection mode. You have to use the <b>Enable Autorecording ...</b> button
+explicitely to do so!
+<p>If you entered automatic detection mode but decide not to enter a speech
+token simply use the same button (now labelled <b>Disable Autorecording
+...</b>) to switch off the automatic detection mode.
+<p>
+<hr WIDTH="100%">
+<h3>
+Recognition Mode</h3>
+Select <b>Detect Voice</b> from the <b>Options</b> menu to let KVoiceControl
+enter "action mode". Having Detect Voice selected, KVoiceControl again
+automatically detects sound signals, records what you say, "pattern matches"
+this utterance to all references and executes the command of the "best
+fitting" reference.
+<br>An utterance is accept if:
+<ul>
+<li>
+its score is below a specified threshold <b>and</b></li>
+
+<li>
+the first and second best score belong to the same utterance <b>or</b></li>
+
+<br>the distance between first and second score is higher than a given
+threshold</ul>
+
+<hr WIDTH="100%">
+<h3>
+Options</h3>
+You can adjust the following options within KVoiceControl:
+<ul>
+<li>
+<b>Recording Threshold</b></li>
+
+<br><i>This is the minimum integer value, that triggers the automatic sound
+recording process.</i>
+<br><i>A value around 10 works fine for me (This value can be adjusted
+automatically now using the Calibration functionality!).</i>
+<li>
+<b>Accepted Silence Frames</b></li>
+
+<br><i>Here one can specify how many <b>silence</b> frames (1 frame = 0.125
+sec) shall be accepted during recording</i>
+<br><i>without stopping. This is needed to be able to use <b>multi-word-utterances
+</b>that
+contain silence frames.</i>
+<br><i>My system accepts 4 frames</i>
+<li>
+<b>Adjustment Window Width</b></li>
+
+<br><i>This value is used within the pattern-matching process. Roughly
+speaking, the bigger the value, the better the recognition but the more
+calculation power needed. For more details: <a href="mailto:kiecza@ira.uka.de">daniel@kiecza.de</a></i>
+<br><i>(I use a value around 70)</i>
+<li>
+<b>Rejection Threshold</b></li>
+
+<br><i>The score of the best matching reference utterance must not be bigger
+than this threshold; otherwise nothing is being recognized (15.0 suits
+for me)</i>
+<li>
+<b>Minimum Distance Between Different Hypos</b></li>
+
+<br><i>A reference is accepted as recognition result, when the two best
+scored utterances belong to that reference (and are below the rejection
+threshold) or when only the best utterance belongs to that reference but
+not the second best <b>and </b>the score distance between these two utterances
+is bigger than the value specified here. (I use 3.5 here)</i></ul>
+
+<hr WIDTH="100%">
+<h3>
+Train References From File</h3>
+To train several references comfortably select <b>Train From File ...</b>
+from the Options menu.
+<br>In the following file dialog you can choose a .txt file that has to
+contain per line:
+<br>&lt;Reference Name>TAB&lt;Associated Unix Command>
+<br>(see commands.txt for an example)
+<br>After this file selection a Reference Trainer dialog pops up. The use
+of this dialog should be clear ...
+<br>Remind: Sample Utterance recording is done automatically, too!
+<p>
+<hr WIDTH="100%">
+<h3>
+Calibrate Microphone</h3>
+KVoiceControl uses a calibration dialog to adjust your microphone's levels
+(start level and stop level).
+<br>For this purpose choose <b>Calibrate Micro ...</b> from the Options
+menu.
+<br>You are then asked to start a mixer program (like kmix) that is needed
+to adjust the soundcard's microphone in level.
+<br>The next dialog then shows the actual level value coming coming from
+MIC IN. You must adjust the mic level in the mixer so that this value
+<br>is stable at zero!
+<br>Pushing OK leads you to the calibration of the <b>start recording level</b>.
+You are asked to talk to your microphone for some seconds. KVoiceControl
+then extracts a proper recording level automatically.
+<br>If the level values seem plausible calibration is done. Else KVoiceControl
+restarts the calibration process.
+<p>
+<hr WIDTH="100%">
+<h3>
+Panel Docking</h3>
+KVoiceControl is docking onto the panel, showing two LED lamps. The functionality
+is as follows:
+<br>The upper (<font color="#FFFF00">yellow</font>) LED is <b>on</b>, when
+KVoiceControl is in <b>voice autodetection mode</b>. When you start speaking
+and as long as you speak, this LED
+<br>will blink. After the utterance is finished the LED switches off and
+the lower LED blinks <font color="#FF0000">red</font> - meaning: <b>recognition
+in progress</b>. If the recognition is successful this LED will switch
+to <font color="#33CC00">green</font>, otherwise deactivates ..... after
+recognition is done, KVoiceControl automatically switches back to <b>voice
+autodetection mode</b>.
+<br>&nbsp;
+<p><b>Mouse control on panel:</b>
+<ul>
+<li>
+<b>left click</b>: toggle the state of the main window between <i>hidden
+</i>and
+<i>on-screen</i></li>
+
+<li>
+<b>right click</b>: toggle <b>voice autodetection mode</b></li>
+</ul>
+
+<hr WIDTH="100%">
+<br>Last changed: 29. Jan 1998
+<br>Daniel Kiecza
+</body>
+</html>

@@ -1,0 +1,27 @@
+Close Emacs	kill -9 `ps uxww | grep emacs | grep -v grep | awk '{print $2}'`
+Look At Me!	xeyes -geometry 1024x768+0+0
+Give Me An Xterm	xterm -fn 9x15
+Shutdown Yourself	xterm -geometry 80x5-0+0 -title "SHUTDOWN" -e sudo shutdown -h now
+Patience Game	kpat
+Switch Off Recognition	detect_mode_off
+Minesweeper	kmines
+Show Me The Latest KDE News!	/home/kiecza/bin/rscape http://www.kde.org/news_dyn.html
+Tagesschau	/home/kiecza/bin/rscape http://www.tagesschau.de/
+Volume Control	kmix
+CD Player	kscd
+Abalone	kabalone
+Calculator	kcalc
+Tetris	ktetris
+Home Directory	kfmclient folder file:$HOME
+KDE Control Center	kcontrol
+Find Files	kfind
+HexEditor	khexdit
+Post-It Note	knotes
+Go Online	kppp
+Karlsruhe	xterm -font 9x15 -e ssh i13a9.ira.uka.de
+Shi-Sen Sho	kshisen
+Ghostview	kghostview
+Hallo, Wie Geht's?	/opt/mbrola/say.sh "danke, mir geht es gut!"
+Sag: "Computer Sind Bloed!"	/opt/mbrola/say.sh "Computer sind bloed!"
+Bist Du Bereit?	    /opt/mbrola/say.sh "Ja, mein Meister!"
+Are You Ready?	    /opt/mbrola/say.sh "Jess, mahster!"

@@ -1,0 +1,30 @@
+NEWS
+================================================================================
+
+kvoicecontrol-0.17:
+
+- some sound driver's didn't show mic level properly in calibration dialog. This
+  should be fixed now!
+
+kvoicecontrol-0.16:
+
+- added a file browser to the ReferenceEditor, can be used to insert a command conveniently.
+- CAUTION: the command detect_mode_off changed to detectModeOff  !!!!!!!
+- several new special commands allow to build simple grammars
+- a new special tag that the user can add to a command forces KVoiceControl to switch off 
+  detection mode before executing the command (useful for speech output to non-duplex sound device).
+
+kvoicecontrol-0.15:
+
+- the lock file is placed in the user's kde tree instead of in /var/lock
+- removed bug from automatic signal detection mode button within reference editor
+
+kvoicecontrol-0.14:
+
+- a lock file in /var/lock/ ensures now that only one instance of KVoiceControl can
+  be launched at a time
+- added a button to the reference editor that gives the user control over the
+  automatic signal detection mode
+- improved configure script (taken from KOrganizer)
+
+--------------------------------------------------------------------------------
