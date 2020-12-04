@@ -6,6 +6,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 
 find_package(KDE1 REQUIRED)
+find_package(PulseAudio REQUIRED)
 
 include_directories (
     ${KDE1_INCLUDE_DIR}

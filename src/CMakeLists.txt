@@ -28,6 +28,7 @@ target_link_libraries(kvoicecontrol
     ${KDE1_KDECORE}
     ${KDE1_KDEUI}
     Qt::Qt1
+    pulse-simple ${PULSEAUDIO_LIBRARY}
 )
 
 install(TARGETS kvoicecontrol RUNTIME DESTINATION ${KDE1_BINDIR})

@@ -4,6 +4,7 @@
  *
  *********************************************************************************/
 
+#include "qtpamainloop.h"
 #include <qkeycode.h>
 #include <qaccel.h>
 #include <kiconloader.h>
