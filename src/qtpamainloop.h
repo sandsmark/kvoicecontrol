@@ -112,7 +112,7 @@ struct QtPaMainLoop {
 
         pa_time_event *timerEvent = reinterpret_cast<pa_time_event *>(timer);
 
-        QObject::connect(timer, SIGNAL(timeout()), timer, SLOT(timerTimeout()));
+        QObject::connect(timer, SIGNAL(timeout()), timer, SLOT(onTimeTimeout()));
 
         int duration = msecsUntilTimeval(tv);
         if (duration < 0) {
@@ -161,10 +161,10 @@ struct QtPaMainLoop {
         QObject::connect(wrapper->readNotifier, SIGNAL(activated(int)), wrapper, SLOT(onRead(int)));
 
         wrapper->writeNotifier = new QSocketNotifier(fd, QSocketNotifier::Write, qApp);
-        QObject::connect(wrapper->writeNotifier, SIGNAL(activated(int)), wrapper, SLOT(onWrite(int fd)));
+        QObject::connect(wrapper->writeNotifier, SIGNAL(activated(int)), wrapper, SLOT(onWrite(int)));
 
         wrapper->errorNotifier = new QSocketNotifier(fd, QSocketNotifier::Exception, qApp);
-        QObject::connect(wrapper->errorNotifier, SIGNAL(activated(int)), wrapper, SLOT(onError(int fd)));
+        QObject::connect(wrapper->errorNotifier, SIGNAL(activated(int)), wrapper, SLOT(onError(int)));
 
         wrapper->readNotifier->setEnabled(events & PA_IO_EVENT_INPUT);
         wrapper->writeNotifier->setEnabled(events & PA_IO_EVENT_OUTPUT);
@@ -204,7 +204,7 @@ struct QtPaMainLoop {
 
         pa_defer_event *eventObject = reinterpret_cast<pa_defer_event*>(timer);
 
-        QObject::connect(timer, SIGNAL(timeout()), timer, SLOT(onTimeout()));
+        QObject::connect(timer, SIGNAL(timeout()), timer, SLOT(onDeferTimeout()));
 
         timer->start(0);
 
@@ -240,8 +240,10 @@ struct QtPaMainLoop {
     static void quit(pa_mainloop_api *a, int retval)
     {
         (void)a;
+        std::cout << "Quit requested" << std::endl;
 
         qApp->exit(retval);
     }
 };
 
+bool connectToPulse();

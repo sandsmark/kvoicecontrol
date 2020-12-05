@@ -31,7 +31,10 @@ KVoiceControl *kvoicecontrol;
 DockWidget    *dock_widget;
 QString       lockFile;
 
+pa_mainloop_api *pulse_api = NULL;
+
 using std::cerr;
+using std::endl;
 
 bool createLockFile(QFile *file)
 {
@@ -113,6 +116,13 @@ int main(int argc, char **argv)
     }
   }
   delete file;
+
+  QtPaMainLoop mainloop;
+  pulse_api = &mainloop.pa_vtable;
+  if (!connectToPulse()) {
+      std::cerr << "Failed to connect to pulse, aborting" << std::endl;
+      exit(1);
+  }
 
   globalKapp = new KApplication( argc, argv, "kvoicecontrol");
   globalKIL  = globalKapp->getIconLoader();
