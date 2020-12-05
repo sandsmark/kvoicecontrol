@@ -12,6 +12,7 @@ qt1_wrap_moc(MOC_FILES
     speakermodel.h
     train_dialog.h
     utterance.h
+    qtpamainloop.h
 )
 
 add_executable(kvoicecontrol
