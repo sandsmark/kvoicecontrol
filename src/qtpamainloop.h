@@ -8,6 +8,7 @@
 #include <pulse/mainloop-api.h>
 #include <sys/time.h>
 #include <assert.h>
+#include <stdio.h>
 
 class TimerWrapper : public QTimer
 {
@@ -28,6 +29,7 @@ public:
 public slots:
     void onDeferTimeout();
     void onTimeTimeout();
+    void onKill();
 public:
     TimerWrapper();
 
@@ -108,7 +110,7 @@ struct QtPaMainLoop {
         timer->timeCallback = callback;
         timer->a = a;
         timer->tv = tv;
-        timer->singleshot = true;
+        timer->singleshot = false;
 
         pa_time_event *timerEvent = reinterpret_cast<pa_time_event *>(timer);
 
@@ -139,7 +141,7 @@ struct QtPaMainLoop {
     static void freeTimer(pa_time_event *e)
     {
         TimerWrapper *timer = reinterpret_cast<TimerWrapper*>(e);
-        delete timer;
+        QTimer::singleShot(0, timer, SLOT(onKill()));
     }
 
     static void timerSetDestructor(pa_time_event *e, pa_time_event_destroy_cb_t destructor)
@@ -224,8 +226,10 @@ struct QtPaMainLoop {
 
     static void freeDefer(pa_defer_event *event)
     {
+        puts("Killing defer");
         TimerWrapper *timer = reinterpret_cast<TimerWrapper *>(event);
-        delete timer;
+        QTimer::singleShot(0, timer, SLOT(onKill()));
+//        delete timer;
     }
 
     static void deferSetDestructor(pa_defer_event *e, pa_defer_event_destroy_cb_t destructor)

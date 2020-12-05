@@ -34,6 +34,11 @@ TimerWrapper::TimerWrapper() :
 }
 
 TimerWrapper::~TimerWrapper() {
+
+}
+
+void TimerWrapper::onKill()
+{
     if (deferDestructor) {
         deferDestructor(a, reinterpret_cast<pa_defer_event *>(this), userdata);
     }
@@ -41,6 +46,7 @@ TimerWrapper::~TimerWrapper() {
         timerDestructor(a, reinterpret_cast<pa_time_event *>(this), userdata);
     }
 
+    delete this;
 }
 
 SocketNotifierWrapper::SocketNotifierWrapper() :
