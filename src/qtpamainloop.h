@@ -9,7 +9,7 @@
 #include <sys/time.h>
 #include <assert.h>
 
-struct TimerWrapper : public QTimer
+class TimerWrapper : public QTimer
 {
     Q_OBJECT
 
@@ -26,47 +26,37 @@ public:
     pa_defer_event_destroy_cb_t deferDestructor;
     const struct timeval *tv;
 public slots:
-    void onDeferTimeout() {
-        deferCallback(a, reinterpret_cast<pa_defer_event *>(this), userdata);
-        if (singleshot) {
-            stop();
-
-            //idk
-            delete this;
-        }
-    }
-    void onTimeTimeout() {
-        timeCallback(a, reinterpret_cast<pa_time_event *>(this), tv, userdata);
-        if (singleshot) {
-            stop();
-
-            //idk
-            delete this;
-        }
-    }
+    void onDeferTimeout();
+    void onTimeTimeout();
 public:
-    TimerWrapper() :
-        QTimer(qApp),
-        a(NULL),
-        userdata(NULL),
-        singleshot(false),
-        deferCallback(NULL),
-        timeCallback(NULL),
-        timerDestructor(NULL),
-        deferDestructor(NULL),
-        tv(NULL)
-    {
-    }
+    TimerWrapper();
 
-    ~TimerWrapper() {
-        if (deferDestructor) {
-            deferDestructor(a, reinterpret_cast<pa_defer_event *>(this), userdata);
-        }
-        if (timerDestructor) {
-            timerDestructor(a, reinterpret_cast<pa_time_event *>(this), userdata);
-        }
+    ~TimerWrapper();
+};
 
-    }
+class SocketNotifierWrapper : public QObject {
+    Q_OBJECT
+public:
+    SocketNotifierWrapper();
+    ~SocketNotifierWrapper();
+public slots:
+    void onRead(int fd);
+    void onWrite(int fd);
+    void onError(int fd);
+
+public:
+    QSocketNotifier *readNotifier;
+    QSocketNotifier *writeNotifier;
+    QSocketNotifier *errorNotifier;
+
+    pa_io_event_destroy_cb_t destructor;
+
+    void *userdata;
+    pa_mainloop_api *a;
+    pa_io_event_cb_t cb;
+private:
+    SocketNotifierWrapper(const SocketNotifierWrapper &o);
+    const SocketNotifierWrapper &operator=(const SocketNotifierWrapper &);
 };
 
 struct QtPaMainLoop {
@@ -157,58 +147,6 @@ struct QtPaMainLoop {
         TimerWrapper *timer = reinterpret_cast<TimerWrapper *>(e);
         timer->timerDestructor = destructor;
     }
-
-    struct SocketNotifierWrapper : public QObject {
-        Q_OBJECT
-public:
-        SocketNotifierWrapper() :
-            readNotifier(NULL),
-            writeNotifier(NULL),
-            errorNotifier(NULL),
-            destructor(NULL),
-            userdata(NULL),
-            a(NULL)
-        {}
-        ~SocketNotifierWrapper()
-        {
-            delete readNotifier;
-            delete writeNotifier;
-            delete errorNotifier;
-
-            if (destructor) {
-                destructor(a, reinterpret_cast<pa_io_event *>(this), userdata);
-            }
-        }
-public slots:
-        void onRead(int fd) {
-            cb(a, reinterpret_cast<pa_io_event*>(this), fd, PA_IO_EVENT_INPUT, userdata);
-        }
-        void onWrite(int fd) {
-            cb(a, reinterpret_cast<pa_io_event*>(this), fd, PA_IO_EVENT_OUTPUT, userdata);
-        }
-        void onError(int fd) {
-            cb(a, reinterpret_cast<pa_io_event*>(this), fd, PA_IO_EVENT_ERROR, userdata);
-        }
-
-
-        QSocketNotifier *readNotifier;
-        QSocketNotifier *writeNotifier;
-        QSocketNotifier *errorNotifier;
-
-        pa_io_event_destroy_cb_t destructor;
-
-        void *userdata;
-        pa_mainloop_api *a;
-        pa_io_event_cb_t cb;
-private:
-        SocketNotifierWrapper(const SocketNotifierWrapper &o) {
-            *this = o;
-        }
-        const SocketNotifierWrapper &operator=(const SocketNotifierWrapper &) {
-            assert(false);
-            return *this;
-        }
-    };
 
     static pa_io_event *newIoEvent(pa_mainloop_api *a, int fd, pa_io_event_flags_t events, pa_io_event_cb_t cb, void *userdata)
     {

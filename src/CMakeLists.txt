@@ -19,6 +19,7 @@ add_executable(kvoicecontrol
     kvoicecontrol.cpp speakermodel.cpp reference.cpp utterance.cpp
     reference_editor.cpp score.cpp preprocessing.cpp realfftf.c soundcard.cpp
     buffer.cpp options.cpp optionsdata.cpp docking.cpp train_dialog.cpp
+    qtpamainloop.cpp
 
     ${MOC_FILES}
 )
