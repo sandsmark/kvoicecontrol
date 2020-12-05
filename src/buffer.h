@@ -93,7 +93,7 @@ signals:
   
 public slots:
 
-  void new_data(void *data);
+  void new_data();
   void post_data(void *data);
 
   void set_accept_silence(int val) {accept_low_N = val;};

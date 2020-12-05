@@ -64,7 +64,6 @@ private:
 
     /* file handle, reference count */
     int  fd, stat;
-    char buffer[65536];
     QSocketNotifier *telmi;
     
     /* internal functions */
@@ -76,6 +75,7 @@ private:
     static void pulse_read_cb(pa_stream *stream, size_t length, void *userdata);
 
 public:
+    char buffer[65536];
 
     Soundcard(char *dev);
     ~Soundcard();
@@ -90,12 +90,12 @@ public:
     int  has_format(int f);   /* check format availibity         */ 
 
 public slots:
-
     void sounddata(int);
     
 signals:
 
-    void senddata(void *data);
+    void senddata();
+//    void senddata(void *data);
     /* !!! only one should be connected to receivedata !!! */
     void receivedata(void *data);
     void newparams(struct SOUNDPARAMS *params);

@@ -82,7 +82,7 @@ SoundBuffer::SoundBuffer()
   do_calibrate = false;
   calibrate_what = 0;
 
-  connect(card, SIGNAL(senddata(void*)),    this, SLOT(new_data(void*)));
+  connect(card, SIGNAL(senddata()),    this, SLOT(new_data()));
   connect(card, SIGNAL(receivedata(void*)), this, SLOT(post_data(void*)));
 }
 
@@ -129,11 +129,12 @@ int SoundBuffer::prefetch_audio(int len, void *data)
 }
 
 
-void SoundBuffer::new_data(void *data)
+void SoundBuffer::new_data()
 {
+    puts("got ata");
   int   i,max;
   short *s;
-
+  void *data = card->buffer;
   if (do_calibrate)
   {
     switch (calibrate_what)
@@ -457,18 +458,23 @@ void SoundBuffer::calibrate_micro()
     detect_speech(true);
     break;
   case 2:  // ***** done
+    card->stop();
     do_calibrate = false;
     calibrate_what = 0;
     if (cal_start_level >= stop_level+level_distance)
     {
       rec_level  = cal_start_level;
    
+        card->blockSignals(true);
       QMessageBox::about(NULL, _("Calibration"), "Calibration done!");
+        card->blockSignals(false);
     }
     else
     {
         puts("calib fail");
+        card->blockSignals(true);
       QMessageBox::about(NULL, _("Calibration"), "Calibration failed! Push OK to restart!");
+        card->blockSignals(false);
       do_calibrate = true;
       calibrate_micro();
     }
