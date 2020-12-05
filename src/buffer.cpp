@@ -149,6 +149,7 @@ void SoundBuffer::new_data(void *data)
 	cal_val = cal_val * 100 / 32768;
 	
 	QString s;
+//    fprintf(stderr, "%d\n", cal_val);
 	s.sprintf("%d", cal_val);
 	stop_level_msg->setText( s );
       }

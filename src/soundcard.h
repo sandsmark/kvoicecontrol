@@ -34,6 +34,8 @@ struct SOUNDPARAMS {
     int latency;
 };
 
+struct pa_stream;
+
 
 class Soundcard : public QObject
 {
@@ -58,6 +60,8 @@ private:
     int  blocksize;
     int  latency;
 
+    pa_stream *stream;
+
     /* file handle, reference count */
     int  fd, stat;
     char buffer[65536];
@@ -67,6 +71,9 @@ private:
     void get_capabilities();
     int  open_dev(int record);
     void close_dev();
+
+    static void pulse_write_cb(pa_stream *stream, size_t length, void *userdata);
+    static void pulse_read_cb(pa_stream *stream, size_t length, void *userdata);
 
 public:
 
