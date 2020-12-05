@@ -18,7 +18,7 @@ public:
     pa_mainloop_api *a;
     void *userdata;
 
-    bool singleshot;
+    bool aborted;
     pa_defer_event_cb_t deferCallback;
     pa_time_event_cb_t timeCallback;
     pa_time_event_destroy_cb_t timerDestructor;
@@ -110,7 +110,6 @@ struct QtPaMainLoop {
         timer->timeCallback = callback;
         timer->a = a;
         timer->tv = tv;
-        timer->singleshot = false;
 
         pa_time_event *timerEvent = reinterpret_cast<pa_time_event *>(timer);
 
@@ -141,6 +140,7 @@ struct QtPaMainLoop {
     static void freeTimer(pa_time_event *e)
     {
         TimerWrapper *timer = reinterpret_cast<TimerWrapper*>(e);
+        timer->aborted = true;
         QTimer::singleShot(0, timer, SLOT(onKill()));
     }
 
@@ -197,18 +197,14 @@ struct QtPaMainLoop {
     }
     static pa_defer_event *newDefer(pa_mainloop_api *a, pa_defer_event_cb_t callback, void *userdata)
     {
-        // could maybe just use a normal QTimer::singleShot?
         TimerWrapper *timer = new TimerWrapper();
         timer->a = a;
         timer->deferCallback = callback;
         timer->userdata = userdata;
-        timer->singleshot = true;
 
         pa_defer_event *eventObject = reinterpret_cast<pa_defer_event*>(timer);
 
-        QObject::connect(timer, SIGNAL(timeout()), timer, SLOT(onDeferTimeout()));
-
-        timer->start(0);
+        QTimer::singleShot(0, timer, SLOT(onDeferTimeout()));
 
         return eventObject;
     }
@@ -217,28 +213,25 @@ struct QtPaMainLoop {
     {
         TimerWrapper *timer = reinterpret_cast<TimerWrapper *>(event);
 
-        if (enabled) {
-            timer->start(0);
+        if (!enabled) {
+            timer->aborted = true;
         } else {
-            timer->stop();
+            timer->aborted = false;
+            QTimer::singleShot(0, timer, SLOT(onDeferTimeout()));
         }
     }
 
     static void freeDefer(pa_defer_event *event)
     {
-        puts("Killing defer");
         TimerWrapper *timer = reinterpret_cast<TimerWrapper *>(event);
+        timer->aborted = true;
         QTimer::singleShot(0, timer, SLOT(onKill()));
-//        delete timer;
     }
 
     static void deferSetDestructor(pa_defer_event *e, pa_defer_event_destroy_cb_t destructor)
     {
         TimerWrapper *timer = reinterpret_cast<TimerWrapper *>(e);
         timer->deferDestructor = destructor;
-//        QObject::connect(timer, SIGNAL(destroyed()), [=]() {
-//            destructor(reinterpret_cast<pa_mainloop_api *>(timer->parent()), e, qvariant_cast<void*>(timer->property("PA_USERDATA")));
-//        });
     }
 
     static void quit(pa_mainloop_api *a, int retval)

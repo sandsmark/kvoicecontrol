@@ -2,29 +2,39 @@
 #include "kvoicecontrol.h"
 #include <pulse/pulseaudio.h>
 
+#include <unistd.h>
+
 pa_context *pulse_context;
 extern pa_mainloop_api *pulse_api;
 extern KVoiceControl *kvoicecontrol;
 
-void TimerWrapper::onDeferTimeout() {
-    deferCallback(a, reinterpret_cast<pa_defer_event *>(this), userdata);
-    if (singleshot) {
-        stop();
+void TimerWrapper::onDeferTimeout()
+{
+    if (!deferCallback) {
+        return;
     }
+    if (aborted) {
+        return;
+    }
+    deferCallback(a, reinterpret_cast<pa_defer_event *>(this), userdata);
 }
 
-void TimerWrapper::onTimeTimeout() {
-    timeCallback(a, reinterpret_cast<pa_time_event *>(this), tv, userdata);
-    if (singleshot) {
-        stop();
+void TimerWrapper::onTimeTimeout()
+{
+    if (!timeCallback) {
+        return;
     }
+    if (aborted) {
+        return;
+    }
+    timeCallback(a, reinterpret_cast<pa_time_event *>(this), tv, userdata);
 }
 
 TimerWrapper::TimerWrapper() :
     QTimer(qApp),
     a(NULL),
     userdata(NULL),
-    singleshot(false),
+    aborted(false),
     deferCallback(NULL),
     timeCallback(NULL),
     timerDestructor(NULL),
