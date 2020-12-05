@@ -158,10 +158,10 @@ KVoiceControl::KVoiceControl(char *speakerfile)
   uint minY = main_menu->height();
   speakermodel->setGeometry(5, minY+5, 300, 200);
   
-  resize(310,210+2*minY);
+  resize(350,210+2*minY);
   //show();
-  setMinimumSize( 310, 210+2*minY );
-  setMaximumSize( 310, 210+2*minY );
+  setMinimumSize( 350, 210+2*minY );
+  setMaximumSize( 350, 210+2*minY );
 
   if (speakerfile != NULL)
   {

@@ -131,7 +131,6 @@ int SoundBuffer::prefetch_audio(int len, void *data)
 
 void SoundBuffer::new_data()
 {
-    puts("got ata");
   int   i,max;
   short *s;
   void *data = card->buffer;
@@ -437,7 +436,7 @@ void SoundBuffer::calibrate_micro()
     stop_level_msg->setFrameStyle( QFrame::Panel | QFrame::Sunken );
     stop_level_msg->setAlignment( AlignVCenter | AlignRight );
     stop_level_msg->setText( "" );
-    stop_level_msg->setGeometry( 70,10, 22,20 );
+    stop_level_msg->setGeometry( 70,10, 30,25 );
 
     QPushButton *ok;
     ok = new QPushButton( "Ok", stop_level_dlgbox );
