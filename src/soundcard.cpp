@@ -194,24 +194,34 @@ char *Soundcard::driver()
 
 void Soundcard::pulse_read_cb(pa_stream *stream, size_t length, void *userdata)
 {
+
+    static int reentries = 0;
+    if (reentries > 0) {
+        puts("reentry detected!");
+        exit(1);
+    }
+    reentries++;
     Soundcard *that = reinterpret_cast<Soundcard*>(userdata);
     const void *data;
 
     if (that->stat != STATUS_RECORD) {
         printf("Not recording, is: %d\n", that->stat);
         pa_stream_drop(stream);
+        reentries--;
         return;
     }
 
 //    if (int(length) < that->blocksize) {
     if (int(pa_stream_readable_size(stream)) < that->blocksize) {
         printf("not enough bytes %lu bytes\n", pa_stream_readable_size(stream));
+        reentries--;
         return;
     }
 //    printf(" > Reading %lu bytes, now at %p\n", length, that->buffer);
     if (pa_stream_peek(stream, &data, &length) < 0) {
         fprintf(stderr, "pa_stream_peek() failed: %s\n", pa_strerror(pa_context_errno(pulse_context)));
         exit(1);
+        reentries--;
         return;
     }
 //    printf(" - Reading %lu bytes, now at %p\n", length, that->buffer);
@@ -226,6 +236,7 @@ void Soundcard::pulse_read_cb(pa_stream *stream, size_t length, void *userdata)
 
     emit that->senddata((void*)that->buffer);
     puts("-----");
+        reentries--;
 //    emit that->receivedata((void*)that->buffer);
     //emit senddata((void*)buffer); /* fft :-) */
 //    break;

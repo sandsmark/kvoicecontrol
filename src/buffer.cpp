@@ -165,7 +165,7 @@ void SoundBuffer::new_data(void *data)
 	else
 	  cal_start_level = 0;
 
-	//fprintf(stderr, "start_level: %d\n", cal_start_level);
+    fprintf(stderr, "start_level: %d\n", cal_start_level);
 		
 	detect_speech(false);
 	calibrate_micro();
@@ -467,6 +467,7 @@ void SoundBuffer::calibrate_micro()
     }
     else
     {
+        puts("calib fail");
       QMessageBox::about(NULL, _("Calibration"), "Calibration failed! Push OK to restart!");
       do_calibrate = true;
       calibrate_micro();
@@ -481,6 +482,7 @@ void SoundBuffer::cal_stop_level_done()
 {
   // finish calibrating stop level
 	
+    puts("stop level done");
   detect_speech(false);
   delete stop_level_dlgbox;
   calibrate_micro();
