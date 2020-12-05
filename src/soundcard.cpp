@@ -56,22 +56,22 @@ Soundcard::~Soundcard()
 int Soundcard::start_record()
 {
     puts("Start record!");
-  switch (stat) 
-  {
-  case STATUS_CLOSED:
-      puts("is closed, reopening");
-    if (!init_done)
-      get_capabilities();
-    if (!init_done)
-      return -1;
-    return open_dev(TRUE);
-  case STATUS_RECORD:
-    return 0;
-  case STATUS_PLAYBACK:
-    close_dev();
-    return open_dev(TRUE);
-  }
-  return -1;
+    switch (stat)
+    {
+    case STATUS_CLOSED:
+        puts("is closed, reopening");
+        if (!init_done)
+            get_capabilities();
+        if (!init_done)
+            return -1;
+        return open_dev(TRUE);
+    case STATUS_RECORD:
+        return 0;
+    case STATUS_PLAYBACK:
+        close_dev();
+        return open_dev(TRUE);
+    }
+    return -1;
 }
 
 
@@ -200,8 +200,6 @@ void Soundcard::pulse_read_cb(pa_stream *stream, size_t length, void *userdata)
     if (that->stat != STATUS_RECORD) {
         printf("Not recording, is: %d\n", that->stat);
         pa_stream_drop(stream);
-//        pa_stream_disconnect(stream);
-//        pa_stream_cancel_write(stream);
         return;
     }
 
@@ -210,13 +208,13 @@ void Soundcard::pulse_read_cb(pa_stream *stream, size_t length, void *userdata)
         printf("not enough bytes %lu bytes\n", pa_stream_readable_size(stream));
         return;
     }
-    printf(" > Reading %lu bytes, now at %p\n", length, that->buffer);
+//    printf(" > Reading %lu bytes, now at %p\n", length, that->buffer);
     if (pa_stream_peek(stream, &data, &length) < 0) {
         fprintf(stderr, "pa_stream_peek() failed: %s\n", pa_strerror(pa_context_errno(pulse_context)));
         exit(1);
         return;
     }
-    printf(" - Reading %lu bytes, now at %p\n", length, that->buffer);
+//    printf(" - Reading %lu bytes, now at %p\n", length, that->buffer);
 
 //    that->blocksize = length;
     // todo: loop and read
@@ -229,7 +227,6 @@ void Soundcard::pulse_read_cb(pa_stream *stream, size_t length, void *userdata)
     emit that->senddata((void*)that->buffer);
     puts("-----");
 //    emit that->receivedata((void*)that->buffer);
-//    write(fd,buffer,blocksize);
     //emit senddata((void*)buffer); /* fft :-) */
 //    break;
 
@@ -280,6 +277,7 @@ int Soundcard::open_dev(int record)
     sampleSpec.format = PA_SAMPLE_S16LE;
     sampleSpec.channels = 1;
     sampleSpec.rate = 16000;
+    blocksize = 2048;
 
     pa_buffer_attr attributes;
     bzero(&attributes, sizeof(attributes));
@@ -289,17 +287,17 @@ int Soundcard::open_dev(int record)
     attributes.minreq = -1;
     attributes.fragsize = -1;
 
-    attributes.tlength = blocksize;
-    attributes.prebuf = blocksize;
-    attributes.minreq = blocksize;
-    attributes.fragsize = blocksize;
+//    attributes.tlength = blocksize;
+//    attributes.prebuf = blocksize;
+//    attributes.minreq = blocksize;
+//    attributes.fragsize = blocksize;
 //    printf("%d\n", blocksize);
-    pa_stream *stream = pa_stream_new(pulse_context, record ? "Record" : "Play", &sampleSpec, NULL);
+    stream = pa_stream_new(pulse_context, record ? "Record" : "Play", &sampleSpec, NULL);
     if (!stream) {
-        puts("FAiled to connect stream");
+        puts(" !!!!!!!! FAiled to connect stream");
         return 1;
     }
-    blocksize = attributes.fragsize;
+//    blocksize = attributes.fragsize;
 
     const char *dev = NULL;
     pa_stream_flags_t flags = PA_STREAM_NOFLAGS;
@@ -328,7 +326,7 @@ int Soundcard::open_dev(int record)
 //    printf("Reading %u bytes, now at %p\n", attributes.tlength, buffer);
 //    printf("Reading %u bytes, now at %p\n", attributes.prebuf, buffer);
 //    printf("Reading %u bytes, now at %p\n", attributes.minreq, buffer);
-//    printf("Reading %u bytes, now at %p\n", attributes.fragsize, buffer);
+    printf("fragsize %u bytes, now at %p\n", attributes.fragsize, buffer);
 
 
     return 0;
@@ -416,11 +414,14 @@ int Soundcard::open_dev(int record)
 void Soundcard::close_dev()
 {
   if (!stream) {
+      if (stat != STATUS_CLOSED) {
+          puts("!!!! wasn't set as closed");
+          stat = STATUS_CLOSED;
+      }
       puts("already closed!");
       return;
   }
   puts("========== Closing dev ===========");
-  pa_stream_disconnect(stream);
   pa_stream_disconnect(stream);
   pa_stream_unref(stream);
   stream = NULL;

@@ -45,6 +45,7 @@ public slots:
     void onRead(int fd);
     void onWrite(int fd);
     void onError(int fd);
+    void onKill();
 
 public:
     QSocketNotifier *readNotifier;
@@ -56,6 +57,7 @@ public:
     void *userdata;
     pa_mainloop_api *a;
     pa_io_event_cb_t cb;
+    bool aborted;
 private:
     SocketNotifierWrapper(const SocketNotifierWrapper &o);
     const SocketNotifierWrapper &operator=(const SocketNotifierWrapper &);
@@ -177,7 +179,11 @@ struct QtPaMainLoop {
 
     static void setIoEnabled(pa_io_event *e, pa_io_event_flags_t events)
     {
+//        puts("IO SET ENABLED");
         SocketNotifierWrapper *wrapper = reinterpret_cast<SocketNotifierWrapper *>(e);
+        if (events & PA_IO_EVENT_HANGUP) {
+            puts("HANGUP");
+        }
 
         wrapper->readNotifier->setEnabled(events & PA_IO_EVENT_INPUT);
         wrapper->writeNotifier->setEnabled(events & PA_IO_EVENT_OUTPUT);
@@ -186,8 +192,14 @@ struct QtPaMainLoop {
 
     static void ioDestroy(pa_io_event *e)
     {
+//        puts("IO DESTROY");
         SocketNotifierWrapper *wrapper = reinterpret_cast<SocketNotifierWrapper*>(e);
-        delete wrapper;
+        wrapper->aborted = true;
+
+        wrapper->readNotifier->setEnabled(false);
+        wrapper->writeNotifier->setEnabled(false);
+        wrapper->errorNotifier->setEnabled(false);
+        QTimer::singleShot(0, wrapper, SLOT(onKill()));
     }
 
     static void setIoDestructor(pa_io_event *e, pa_io_event_destroy_cb_t cb)

@@ -65,7 +65,9 @@ SocketNotifierWrapper::SocketNotifierWrapper() :
     errorNotifier(NULL),
     destructor(NULL),
     userdata(NULL),
-    a(NULL)
+    a(NULL),
+    cb(NULL),
+    aborted(false)
 {}
 
 SocketNotifierWrapper::~SocketNotifierWrapper()
@@ -79,16 +81,38 @@ SocketNotifierWrapper::~SocketNotifierWrapper()
     }
 }
 
-void SocketNotifierWrapper::onRead(int fd) {
+void SocketNotifierWrapper::onRead(int fd)
+{
+    if (aborted) {
+        return;
+    }
+//    printf("read: %d\n", fd);
     cb(a, reinterpret_cast<pa_io_event*>(this), fd, PA_IO_EVENT_INPUT, userdata);
 }
 
-void SocketNotifierWrapper::onWrite(int fd) {
+void SocketNotifierWrapper::onWrite(int fd)
+{
+    if (aborted) {
+        return;
+    }
     cb(a, reinterpret_cast<pa_io_event*>(this), fd, PA_IO_EVENT_OUTPUT, userdata);
 }
 
-void SocketNotifierWrapper::onError(int fd) {
+void SocketNotifierWrapper::onError(int fd)
+{
+    if (aborted) {
+        return;
+    }
     cb(a, reinterpret_cast<pa_io_event*>(this), fd, PA_IO_EVENT_ERROR, userdata);
+}
+
+void SocketNotifierWrapper::onKill()
+{
+    if (destructor) {
+        destructor(a, reinterpret_cast<pa_io_event *>(this), userdata);
+    }
+
+    delete this;
 }
 
 SocketNotifierWrapper::SocketNotifierWrapper(const SocketNotifierWrapper &o) {
