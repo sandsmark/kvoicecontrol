@@ -36,7 +36,7 @@ private:
 
     bool         recording, playing;
 
-    void         *prefetch;
+    char         *prefetch;
     int          prefetch_N;
     int          prefetch_pos;
 

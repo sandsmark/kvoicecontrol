@@ -156,7 +156,7 @@ Utterance *Preprocessing::preprocess_utterance(short *wave, int size)
 
     utt->set_data(mel_scales, frames_N);
 
-    delete mean;
+    delete[] mean;
 
     return utt;
 }

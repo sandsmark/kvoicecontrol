@@ -23,7 +23,7 @@
 
 
 ReferenceEditor::ReferenceEditor(Reference *_r, Preprocessing *_p, SoundBuffer *_b,
-                                 QWidget *parent = 0, const char *name = 0) : QDialog(parent, name, TRUE)
+                                 QWidget *parent, const char *name) : QDialog(parent, name, TRUE)
 {
     setCaption("Reference Editor");
 
@@ -70,7 +70,7 @@ ReferenceEditor::ReferenceEditor(Reference *_r, Preprocessing *_p, SoundBuffer *
     buffer = _b;
 
     connect(buffer, SIGNAL(end_detected()), this, SLOT(stop_recording()));
-    buffer->do_replay(true);
+//    buffer->do_replay(true);
 
     fdialog  = new QFileDialog(NULL, "", NULL, "dialog", TRUE);
 
@@ -104,6 +104,7 @@ ReferenceEditor::~ReferenceEditor()
 
 void ReferenceEditor::stop_recording()
 {
+    puts("End detected");
     QDateTime dt = QDateTime::currentDateTime();
     QString name = dt.toString();
     name.prepend("[");

@@ -26,7 +26,7 @@
 
 
 TrainDialog::TrainDialog(QString _f, SpeakerModel *_s, Preprocessing *_p,
-                         SoundBuffer *_b, QWidget *parent = 0, const char *name = 0)
+                         SoundBuffer *_b, QWidget *parent, const char *name)
     : QDialog(parent, name, TRUE)
 {
     setCaption("Reference Trainer");

@@ -158,7 +158,7 @@ void SpeakerModel::load()
 }
 
 
-void SpeakerModel::load(char *f = 0, bool reset_first)
+void SpeakerModel::load(const char *f, bool reset_first)
 {
     detect_mode_off();
 
@@ -459,7 +459,7 @@ void SpeakerModel::execute_command(QString command)
 
     // ***** execute it only in the Background if there aren,A4(Bt any special commands behind it
 
-    cerr << "C: " << command << endl;
+    cerr << "C: " << command << std::endl;
 
     if ((end <= 0) && (command.right(1) != "&")) {
         command.append(" &");

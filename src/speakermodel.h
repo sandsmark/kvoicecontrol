@@ -44,7 +44,7 @@ public:
 
     void save_config(KConfig *);
 
-    void load(char *f = 0, bool reset_first = true);
+    void load(const char *f, bool reset_first);
 
 public slots:
 

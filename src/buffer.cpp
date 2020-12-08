@@ -72,7 +72,7 @@ SoundBuffer::SoundBuffer()
 
     prefetch_N     = 2;
     prefetch_pos   = 0;
-    prefetch       = new short[BLOCK_SIZE * prefetch_N];
+    prefetch       = reinterpret_cast<char*>(new short[BLOCK_SIZE * prefetch_N]);
 
     accept_low_N = 4;
     accept_low_count = 0;
@@ -153,7 +153,7 @@ void SoundBuffer::new_data()
             cal_val = cal_val * 100 / 32768;
 
             QString s;
-//    fprintf(stderr, "%d\n", cal_val);
+            fprintf(stderr, "%d\n", cal_val);
             s.sprintf("%d", cal_val);
             stop_level_msg->setText(s);
         }
@@ -166,12 +166,13 @@ void SoundBuffer::new_data()
                 // finish calibrating start level
 
                 if (cal_start_level_count > 0) {
-                    cal_start_level = (2 * (cal_start_level_sum / cal_start_level_count) + 1 * cal_start_level_min) / 3;
+                    cal_start_level = ((2 * (cal_start_level_sum / cal_start_level_count) + 1) * cal_start_level_min) / 3;
                 } else {
                     cal_start_level = 0;
                 }
 
                 fprintf(stderr, "start_level: %d\n", cal_start_level);
+                fprintf(stderr, "start_level: Max %d, sum: %d, count: %d\n", cal_start_level, cal_start_level_sum, cal_start_level_count);
 
                 detect_speech(false);
                 calibrate_micro();
@@ -185,15 +186,15 @@ void SoundBuffer::new_data()
 
                 cal_max = cal_max * 100 / 32768;
 
-                //fprintf(stderr, "start_level: Max %d\n", cal_max);
-
                 if (cal_max > stop_level) {
+                    fprintf(stderr, "start_level: Max %d\n", cal_max);
                     cal_start_level_sum += cal_max;
                     cal_start_level_count++;
 
                     if (cal_max < cal_start_level_min) {
                         cal_start_level_min = cal_max;
                     }
+                    fprintf(stderr, "start_level: Max %d, sum: %d, count: %d\n", cal_max, cal_start_level_sum, cal_start_level_count);
                 }
             }
         }
@@ -210,17 +211,17 @@ void SoundBuffer::new_data()
 
             max = max * 100 / 32768;
 
-            //fprintf(stderr, "MAX: %d\n", max);
+            fprintf(stderr, "wait and not playing MAX: %d\n", max);
 
             if (max >= rec_level) {
                 wait = 0;
-                //fprintf(stderr, "recording...");
+                fprintf(stderr, "recording...");
                 recording = true;
             } else {
                 return;
             }
         } else if (recording) {
-            //cerr  << "activ" << endl;
+            std::cerr  << "activ" << std::endl;
             emit recording_active();
 
             if (get_another_buffer) {
@@ -229,7 +230,7 @@ void SoundBuffer::new_data()
                     write_audio(BLOCK_SIZE * sizeof(short), data);
                 } else {
                     get_another_buffer = false;
-                    //fprintf(stderr, "done\n");
+                    fprintf(stderr, "done\n");
                     stop();
                 }
             } else {
@@ -240,7 +241,7 @@ void SoundBuffer::new_data()
 
                 max = max * 100 / 32768;
 
-                //fprintf(stderr, "MAX: %d\n", max);
+                fprintf(stderr, "MAX: %d\n", max);
 
                 if (accept_low_count >= accept_low_N) {
                     get_another_buffer = true;
@@ -338,17 +339,20 @@ void SoundBuffer::stop()
             memcpy(to, from, BLOCK_SIZE * sizeof(short));
         }
 
-        delete buffer;
+        delete[] buffer;
         buffer = tmpbuffer;
         position += prefetch_N * BLOCK_SIZE;
 
 
         if (replay) {
+            puts("Replaying");
             play();
         } else {
+            puts("Is recording");
             emit end_detected();
         }
     } else if (playing) {
+        puts("Is playing");
         playing = false;
         emit end_detected();
     }
@@ -451,6 +455,7 @@ void SoundBuffer::calibrate_micro()
         calibrate_what = 0;
 
         if (cal_start_level >= stop_level + level_distance) {
+            printf("cal start level: %d\n", cal_start_level);
             rec_level  = cal_start_level;
 
             card->blockSignals(true);
@@ -458,6 +463,7 @@ void SoundBuffer::calibrate_micro()
             card->blockSignals(false);
         } else {
             puts("calib fail");
+            printf("cal start level: %d\n", cal_start_level);
             card->blockSignals(true);
             QMessageBox::about(NULL, _("Calibration"), "Calibration failed! Push OK to restart!");
             card->blockSignals(false);
