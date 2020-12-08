@@ -66,6 +66,8 @@ private:
     int  fd, stat;
     QSocketNotifier *telmi;
 
+    bool stopped;
+
     /* internal functions */
     void get_capabilities();
     int  open_dev(int record);

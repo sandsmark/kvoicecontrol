@@ -70,7 +70,7 @@ ReferenceEditor::ReferenceEditor(Reference *_r, Preprocessing *_p, SoundBuffer *
     buffer = _b;
 
     connect(buffer, SIGNAL(end_detected()), this, SLOT(stop_recording()));
-//    buffer->do_replay(true);
+    buffer->do_replay(true);
 
     fdialog  = new QFileDialog(NULL, "", NULL, "dialog", TRUE);
 

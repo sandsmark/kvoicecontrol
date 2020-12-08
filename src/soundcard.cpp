@@ -261,31 +261,39 @@ void Soundcard::pulse_write_cb(pa_stream *stream, size_t length, void *userdata)
         return;
     }
 
-    emit that->receivedata((void *)that->buffer);
+    ssize_t paLength = length;
+    while (paLength > 0 && that->stat == STATUS_PLAYBACK) {
+        emit that->receivedata((void *)that->buffer);
 
-    char *buffer = that->buffer;
+        char *buffer = that->buffer;
 
-    int bytesLeft = that->blocksize;
+        int bytesLeft = length;//that->blocksize;
+        printf("length: %lu\n", length);
 
-    while (bytesLeft > 0) {
-        size_t bytesToWrite = that->blocksize;
+        while (paLength > 0 && bytesLeft > 0 && that->stat == STATUS_PLAYBACK) {
+            size_t bytesToWrite = that->blocksize;
 
-        if (pa_stream_begin_write(stream, (void **)&buffer, &bytesToWrite) < 0) {
-            puts("failed to begin write");
-            return;
+            if (pa_stream_begin_write(stream, (void **)&buffer, &bytesToWrite) < 0) {
+                puts("failed to begin write");
+                return;
+            }
+
+            if (bytesToWrite == 0) {
+                puts("no bytes to write?");
+                break;
+            }
+
+            if (ssize_t(bytesToWrite) > bytesLeft) {
+                bytesToWrite = bytesLeft;
+            }
+            assert(int(bytesToWrite) <= bytesLeft);
+            bytesLeft -= bytesToWrite;
+            paLength -= bytesToWrite;
+            pa_stream_write(stream, (void *)buffer, bytesToWrite, NULL, 0LL,
+                            PA_SEEK_RELATIVE);
+            buffer += bytesToWrite;
+            printf("Wrote %lu bytes, now at %p\n", bytesToWrite, buffer);
         }
-
-        if (bytesToWrite == 0) {
-            puts("no bytes to write?");
-            break;
-        }
-
-        assert(int(bytesToWrite) <= bytesLeft);
-        bytesLeft -= bytesToWrite;
-        pa_stream_write(stream, (void *)buffer, bytesToWrite, NULL, 0LL,
-                        PA_SEEK_RELATIVE);
-        buffer += bytesToWrite;
-        printf("Wrote %lu bytes, now at %p\n", bytesToWrite, buffer);
     }
 
     puts("Written");
