@@ -23,41 +23,41 @@ class QColor;
 
 class ReferenceEditor : public QDialog
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
 
-  ReferenceEditor( Reference *_r, Preprocessing *_p, SoundBuffer *_b,
-		   QWidget *parent=0, const char *name=0);
-  ~ReferenceEditor();
- 
+    ReferenceEditor(Reference *_r, Preprocessing *_p, SoundBuffer *_b,
+                    QWidget *parent = 0, const char *name = 0);
+    ~ReferenceEditor();
+
 public slots:
 
-  void stop_recording();
-  void delete_sample();
-  void my_accept();
-  void switch_autorecording();
-  void disable_autorecording();
-  void browse_command();
+    void stop_recording();
+    void delete_sample();
+    void my_accept();
+    void switch_autorecording();
+    void disable_autorecording();
+    void browse_command();
 
 private:
 
-  QList<Utterance> *smp_list;
-  QListBox *smp_listbox;
+    QList<Utterance> *smp_list;
+    QListBox *smp_listbox;
 
-  QFileDialog *fdialog;
-  QPushButton *browse_btn;
+    QFileDialog *fdialog;
+    QPushButton *browse_btn;
 
-  QLineEdit *text;
-  QLineEdit *cmd;
+    QLineEdit *text;
+    QLineEdit *cmd;
 
-  QPushButton *switch_autorecording_btn;
-  QPalette    *default_button_palette;
-  QPalette    *action_button_palette;
+    QPushButton *switch_autorecording_btn;
+    QPalette    *default_button_palette;
+    QPalette    *action_button_palette;
 
-  Reference     *reference;
-  Preprocessing *preprocessing;
-  SoundBuffer   *buffer;
+    Reference     *reference;
+    Preprocessing *preprocessing;
+    SoundBuffer   *buffer;
 };
 
 #endif

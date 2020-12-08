@@ -18,7 +18,7 @@
 
 class KVoiceControl : public KTopLevelWidget
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
 
@@ -46,7 +46,7 @@ private:
     QPopupMenu    *rec_menu;
     QPopupMenu    *opt_menu;
     QPopupMenu    *help_menu;
-    
+
     int detect_ID;
 
     QRect *menu_geometry;

@@ -13,9 +13,11 @@ void TimerWrapper::onDeferTimeout()
     if (!deferCallback) {
         return;
     }
+
     if (aborted) {
         return;
     }
+
     deferCallback(a, reinterpret_cast<pa_defer_event *>(this), userdata);
 }
 
@@ -24,9 +26,11 @@ void TimerWrapper::onTimeTimeout()
     if (!timeCallback) {
         return;
     }
+
     if (aborted) {
         return;
     }
+
     timeCallback(a, reinterpret_cast<pa_time_event *>(this), tv, userdata);
 }
 
@@ -43,7 +47,8 @@ TimerWrapper::TimerWrapper() :
 {
 }
 
-TimerWrapper::~TimerWrapper() {
+TimerWrapper::~TimerWrapper()
+{
 
 }
 
@@ -52,6 +57,7 @@ void TimerWrapper::onKill()
     if (deferDestructor) {
         deferDestructor(a, reinterpret_cast<pa_defer_event *>(this), userdata);
     }
+
     if (timerDestructor) {
         timerDestructor(a, reinterpret_cast<pa_time_event *>(this), userdata);
     }
@@ -86,8 +92,9 @@ void SocketNotifierWrapper::onRead(int fd)
     if (aborted) {
         return;
     }
+
 //    printf("read: %d\n", fd);
-    cb(a, reinterpret_cast<pa_io_event*>(this), fd, PA_IO_EVENT_INPUT, userdata);
+    cb(a, reinterpret_cast<pa_io_event *>(this), fd, PA_IO_EVENT_INPUT, userdata);
 }
 
 void SocketNotifierWrapper::onWrite(int fd)
@@ -95,7 +102,8 @@ void SocketNotifierWrapper::onWrite(int fd)
     if (aborted) {
         return;
     }
-    cb(a, reinterpret_cast<pa_io_event*>(this), fd, PA_IO_EVENT_OUTPUT, userdata);
+
+    cb(a, reinterpret_cast<pa_io_event *>(this), fd, PA_IO_EVENT_OUTPUT, userdata);
 }
 
 void SocketNotifierWrapper::onError(int fd)
@@ -103,7 +111,8 @@ void SocketNotifierWrapper::onError(int fd)
     if (aborted) {
         return;
     }
-    cb(a, reinterpret_cast<pa_io_event*>(this), fd, PA_IO_EVENT_ERROR, userdata);
+
+    cb(a, reinterpret_cast<pa_io_event *>(this), fd, PA_IO_EVENT_ERROR, userdata);
 }
 
 void SocketNotifierWrapper::onKill()
@@ -115,11 +124,13 @@ void SocketNotifierWrapper::onKill()
     delete this;
 }
 
-SocketNotifierWrapper::SocketNotifierWrapper(const SocketNotifierWrapper &o) {
+SocketNotifierWrapper::SocketNotifierWrapper(const SocketNotifierWrapper &o)
+{
     *this = o;
 }
 
-const SocketNotifierWrapper &SocketNotifierWrapper::operator=(const SocketNotifierWrapper &) {
+const SocketNotifierWrapper &SocketNotifierWrapper::operator=(const SocketNotifierWrapper &)
+{
     assert(false);
     return *this;
 }
@@ -128,16 +139,20 @@ static void context_state_callback(pa_context *c, void *userdata)
 {
     (void)userdata;// todo: use it?
     pa_context_state_t state = pa_context_get_state(c);
+
     switch (state) {
     case PA_CONTEXT_UNCONNECTED:
         std::cout << "unconnceted" << std::endl;
         break;
+
     case PA_CONTEXT_CONNECTING:
         std::cout << "connecting..." << std::endl;
         break;
+
     case PA_CONTEXT_AUTHORIZING:
         std::cout << "authorizing..." << std::endl;
         break;
+
     case PA_CONTEXT_SETTING_NAME:
         std::cout << "setting name..." << std::endl;
         break;
@@ -153,6 +168,7 @@ static void context_state_callback(pa_context *c, void *userdata)
     case PA_CONTEXT_TERMINATED:
         std::cerr << "context terminated!" << std::endl;
         break;
+
     default:
         std::cerr << "Unknown state: " << state << std::endl;
         return;
@@ -166,6 +182,7 @@ bool connectToPulse()
         std::cerr << "Already connected!" << std::endl;
         return false;
     }
+
     pa_proplist *proplist = pa_proplist_new();
     pa_proplist_sets(proplist, PA_PROP_APPLICATION_NAME, "KVoiceControl");
     pa_proplist_sets(proplist, PA_PROP_APPLICATION_ID, "com.iskrembilen.kvoicecontrol");
@@ -178,14 +195,17 @@ bool connectToPulse()
     pa_proplist_free(proplist);
 
     pa_context_set_state_callback(pulse_context, context_state_callback, kvoicecontrol);
+
     if (pa_context_connect(pulse_context, NULL, PA_CONTEXT_NOFAIL, NULL) < 0) {
         if (pa_context_errno(pulse_context) == PA_ERR_INVALID) {
             std::cerr << "invalid  pulse context" << std::endl;
         } else {
             std::cerr << "error connecting context" << std::endl;
         }
+
         return false;
     }
+
     std::cout << "Connected to pulseaudio" << std::endl;
     return true;
 }

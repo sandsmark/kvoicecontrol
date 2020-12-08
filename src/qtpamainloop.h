@@ -36,7 +36,8 @@ public:
     ~TimerWrapper();
 };
 
-class SocketNotifierWrapper : public QObject {
+class SocketNotifierWrapper : public QObject
+{
     Q_OBJECT
 public:
     SocketNotifierWrapper();
@@ -100,6 +101,7 @@ struct QtPaMainLoop {
         if (diff.tv_usec) {
             target += diff.tv_usec / 1000;
         }
+
         return target;
 
         //return QDateTime::currentDateTime().msecsTo(QDateTime::fromMSecsSinceEpoch(target));
@@ -118,10 +120,12 @@ struct QtPaMainLoop {
         QObject::connect(timer, SIGNAL(timeout()), timer, SLOT(onTimeTimeout()));
 
         int duration = msecsUntilTimeval(tv);
+
         if (duration < 0) {
             std::cerr << "Invalid timer target, sec:" << tv->tv_sec << "usec" << tv->tv_usec << std::endl;
             duration = 0;
         }
+
         timer->start(duration);
 
         return timerEvent;
@@ -141,7 +145,7 @@ struct QtPaMainLoop {
 
     static void freeTimer(pa_time_event *e)
     {
-        TimerWrapper *timer = reinterpret_cast<TimerWrapper*>(e);
+        TimerWrapper *timer = reinterpret_cast<TimerWrapper *>(e);
         timer->aborted = true;
         QTimer::singleShot(0, timer, SLOT(onKill()));
     }
@@ -181,6 +185,7 @@ struct QtPaMainLoop {
     {
 //        puts("IO SET ENABLED");
         SocketNotifierWrapper *wrapper = reinterpret_cast<SocketNotifierWrapper *>(e);
+
         if (events & PA_IO_EVENT_HANGUP) {
             puts("HANGUP");
         }
@@ -193,7 +198,7 @@ struct QtPaMainLoop {
     static void ioDestroy(pa_io_event *e)
     {
 //        puts("IO DESTROY");
-        SocketNotifierWrapper *wrapper = reinterpret_cast<SocketNotifierWrapper*>(e);
+        SocketNotifierWrapper *wrapper = reinterpret_cast<SocketNotifierWrapper *>(e);
         wrapper->aborted = true;
 
         wrapper->readNotifier->setEnabled(false);
@@ -204,7 +209,7 @@ struct QtPaMainLoop {
 
     static void setIoDestructor(pa_io_event *e, pa_io_event_destroy_cb_t cb)
     {
-        SocketNotifierWrapper *wrapper = reinterpret_cast<SocketNotifierWrapper*>(e);
+        SocketNotifierWrapper *wrapper = reinterpret_cast<SocketNotifierWrapper *>(e);
         wrapper->destructor = cb;
     }
     static pa_defer_event *newDefer(pa_mainloop_api *a, pa_defer_event_cb_t callback, void *userdata)
@@ -214,7 +219,7 @@ struct QtPaMainLoop {
         timer->deferCallback = callback;
         timer->userdata = userdata;
 
-        pa_defer_event *eventObject = reinterpret_cast<pa_defer_event*>(timer);
+        pa_defer_event *eventObject = reinterpret_cast<pa_defer_event *>(timer);
 
         QTimer::singleShot(0, timer, SLOT(onDeferTimeout()));
 

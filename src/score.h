@@ -20,57 +20,101 @@
 
 class Score : public QObject
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
 
-  Score();
-  ~Score();
+    Score();
+    ~Score();
 
-  QString *score(const Utterance *, QList<Reference> *);
-  QString *branchNbound_score(const Utterance *, QList<Reference> *);
+    QString *score(const Utterance *, QList<Reference> *);
+    QString *branchNbound_score(const Utterance *, QList<Reference> *);
 
-  float score(const Utterance *, const Utterance *);
-  int get_adjust_win_width() {return adjustment_width;};
-  float get_threshold() {return threshold;};
-  float get_min_distance() {return min_distance;};
+    float score(const Utterance *, const Utterance *);
+    int get_adjust_win_width()
+    {
+        return adjustment_width;
+    };
+    float get_threshold()
+    {
+        return threshold;
+    };
+    float get_min_distance()
+    {
+        return min_distance;
+    };
 
 public slots:
 
-  void set_adjust_width(int val) {adjustment_width =val;};
-  void set_threshold(float val) {threshold =val;};
-  void set_min_distance(float val) {min_distance = val;};
+    void set_adjust_width(int val)
+    {
+        adjustment_width = val;
+    };
+    void set_threshold(float val)
+    {
+        threshold = val;
+    };
+    void set_min_distance(float val)
+    {
+        min_distance = val;
+    };
 
 
 private:
 
-  float euklid_distance(const float *, const float *);
+    float euklid_distance(const float *, const float *);
 
-  float **DTW_matrix;
-  int adjustment_width;
-  float threshold;
-  float min_distance;
+    float **DTW_matrix;
+    int adjustment_width;
+    float threshold;
+    float min_distance;
 };
 
 
 class BBQueueItem
 {
 public:
-  BBQueueItem( float _s, uint _i, uint _p ) { sc=_s; idx=_i; p=_p; }
-  float  score() const { return(sc); }
-  uint  plane_index() const { return(idx); }
-  uint pos()   const { return(p); }
+    BBQueueItem(float _s, uint _i, uint _p)
+    {
+        sc = _s;
+        idx = _i;
+        p = _p;
+    }
+    float  score() const
+    {
+        return (sc);
+    }
+    uint  plane_index() const
+    {
+        return (idx);
+    }
+    uint pos()   const
+    {
+        return (p);
+    }
 
-  void set_score(float _s)      { sc=_s; }
-  void set_plane_index(uint _i) { idx=_i; }
-  void set_pos(uint _p)         { p=_p; }
+    void set_score(float _s)
+    {
+        sc = _s;
+    }
+    void set_plane_index(uint _i)
+    {
+        idx = _i;
+    }
+    void set_pos(uint _p)
+    {
+        p = _p;
+    }
 
-  void step_right() { p++; }
-  
+    void step_right()
+    {
+        p++;
+    }
+
 private:
-  float sc;
-  uint idx;
-  uint p;
+    float sc;
+    uint idx;
+    uint p;
 };
 
 

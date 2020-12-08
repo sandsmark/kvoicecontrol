@@ -31,82 +31,82 @@ class Options;
 
 class SpeakerModel : public QWidget
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
 
-  SpeakerModel(KConfig *config, QWidget *parent=0, const char *name=0);
-  ~SpeakerModel();
+    SpeakerModel(KConfig *config, QWidget *parent = 0, const char *name = 0);
+    ~SpeakerModel();
 
-  bool has_changed();
-  bool ask_save_changes();
-  bool check_references();
+    bool has_changed();
+    bool ask_save_changes();
+    bool check_references();
 
-  void save_config(KConfig *);
+    void save_config(KConfig *);
 
-  void load(char *f=0, bool reset_first=true);
+    void load(char *f = 0, bool reset_first = true);
 
 public slots:
 
-  bool reset();
-  void load();
-  void import();
-  void save();
-  void save_as();
-  
-  void test_utterance();
+    bool reset();
+    void load();
+    void import();
+    void save();
+    void save_as();
 
-  void new_reference();
-  void edit_reference();
-  void delete_reference();
+    void test_utterance();
 
-  void append_reference(Reference *);
+    void new_reference();
+    void edit_reference();
+    void delete_reference();
 
-  void detect_mode_on();
-  void detect_mode_off();
-  void toggle_detect_mode();
+    void append_reference(Reference *);
 
-  void show_options();
+    void detect_mode_on();
+    void detect_mode_off();
+    void toggle_detect_mode();
 
-  void train_references();
+    void show_options();
 
-  void calibrate_micro();
-  
-  //void set_min_distance(float val) {min_distance = val;};
+    void train_references();
+
+    void calibrate_micro();
+
+    //void set_min_distance(float val) {min_distance = val;};
 
 signals:
-  
-  void new_title(QString title);
-  void detect_mode_changed(bool detect);
+
+    void new_title(QString title);
+    void detect_mode_changed(bool detect);
 
 private:
 
-  QString test_command(QString command, QString cname);
-  void    execute_command(QString command);
-  int     end;
+    QString test_command(QString command, QString cname);
+    void    execute_command(QString command);
+    int     end;
 
-  QString          *filename;
-  QFileDialog      *fdialog;
+    QString          *filename;
+    QFileDialog      *fdialog;
 
-  QListBox         *ref_listbox;
-  QList<Reference> *ref_list;
+    QListBox         *ref_listbox;
+    QList<Reference> *ref_list;
 
-  ReferenceEditor  *ref_editor;
+    ReferenceEditor  *ref_editor;
 
-  Score            *score;
-  Preprocessing    *preprocessing;
-  SoundBuffer      *buffer;
+    Score            *score;
+    Preprocessing    *preprocessing;
+    SoundBuffer      *buffer;
 
-  bool             do_detect;
-  bool             changed;
+    bool             do_detect;
+    bool             changed;
 
-  Options          *options_dlg;
+    Options          *options_dlg;
 
-  QTimer           *led_timer;
+    QTimer           *led_timer;
 
-  QPushButton *new_reference_btn;
-  QPushButton *edit_reference_btn;
-  QPushButton *delete_reference_btn;
+    QPushButton *new_reference_btn;
+    QPushButton *edit_reference_btn;
+    QPushButton *delete_reference_btn;
 };
 
 #endif

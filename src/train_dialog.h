@@ -10,7 +10,7 @@
 #include <qdialog.h>
 //#include <qstring.h>
 #include <qlist.h>
-#include <kintegerline.h> 
+#include <kintegerline.h>
 
 class QLabel;
 class QPushButton;
@@ -24,69 +24,69 @@ class SpeakerModel;
 
 class TrainDialog : public QDialog
 {
-  Q_OBJECT
+    Q_OBJECT
 
 public:
 
-  TrainDialog( QString _f, SpeakerModel *_s, Preprocessing *_p, SoundBuffer *_b,
-		   QWidget *parent=0, const char *name=0);
-  ~TrainDialog();
+    TrainDialog(QString _f, SpeakerModel *_s, Preprocessing *_p, SoundBuffer *_b,
+                QWidget *parent = 0, const char *name = 0);
+    ~TrainDialog();
 
 public slots:
 
-  void stop_recording();
-  void delete_sample();
+    void stop_recording();
+    void delete_sample();
 
 protected slots:
 
-  void my_accept();
-  void my_reject();
+    void my_accept();
+    void my_reject();
 
 protected slots:
 
-  void navigate_begin();
-  void navigate_left();
-  void navigate_entry();
-  void navigate_right();
-  void navigate_end();
+    void navigate_begin();
+    void navigate_left();
+    void navigate_entry();
+    void navigate_right();
+    void navigate_end();
 
 private:
 
-  void navigate(uint);
+    void navigate(uint);
 
-  bool load_refslist(QString);
-  void update_view();
+    bool load_refslist(QString);
+    void update_view();
 
-  //QList<Utterance> *smp_list;
-  //QString *refslist_file;
+    //QList<Utterance> *smp_list;
+    //QString *refslist_file;
 
-  SpeakerModel     *speakermodel;
-  QList<Reference> *ref_list_local;
+    SpeakerModel     *speakermodel;
+    QList<Reference> *ref_list_local;
 
-  QListBox  *smp_listbox;
-  QLabel    *smp_label;
+    QListBox  *smp_listbox;
+    QLabel    *smp_label;
 
-  QLineEdit *text;
-  QLabel    *text_label;
-  QLineEdit *cmd;
-  QLabel    *cmd_label;
+    QLineEdit *text;
+    QLabel    *text_label;
+    QLineEdit *cmd;
+    QLabel    *cmd_label;
 
-  QPushButton *delete_sample_utt;
+    QPushButton *delete_sample_utt;
 
-  QPushButton  *nav_begin;
-  QPushButton  *nav_down;
-  KIntegerLine *pos_entry;
-  QPushButton  *nav_up;
-  QPushButton  *nav_end;
+    QPushButton  *nav_begin;
+    QPushButton  *nav_down;
+    KIntegerLine *pos_entry;
+    QPushButton  *nav_up;
+    QPushButton  *nav_end;
 
-  QPushButton *ok;
-  QPushButton *cancel;
+    QPushButton *ok;
+    QPushButton *cancel;
 
-  Reference     *reference;
-  uint          position;
+    Reference     *reference;
+    uint          position;
 
-  Preprocessing *preprocessing;
-  SoundBuffer   *buffer;
+    Preprocessing *preprocessing;
+    SoundBuffer   *buffer;
 };
 
 #endif

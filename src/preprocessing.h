@@ -14,8 +14,8 @@ class Utterance;
 
 class Preprocessing : public QObject
 {
-  Q_OBJECT
- 
+    Q_OBJECT
+
 public:
 
     Preprocessing();
@@ -24,12 +24,12 @@ public:
 
 private:
 
-  int    rate;
-  int   *filter_banks;
-  int    fft_size;     // ***** Size of short-time window
-  float *hamming_window;
-  int    hamming_size; // ***** Hamming window width = 16ms ! (256 Frames)
-  int    offset;       // ***** Offset = 10ms (160 Frames)
+    int    rate;
+    int   *filter_banks;
+    int    fft_size;     // ***** Size of short-time window
+    float *hamming_window;
+    int    hamming_size; // ***** Hamming window width = 16ms ! (256 Frames)
+    int    offset;       // ***** Offset = 10ms (160 Frames)
 };
 
 #endif

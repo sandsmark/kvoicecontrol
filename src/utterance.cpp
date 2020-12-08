@@ -15,8 +15,8 @@
 
 Utterance::Utterance()
 {
-  size = 0;
-  data = NULL;
+    size = 0;
+    data = NULL;
 }
 
 
@@ -28,8 +28,8 @@ Utterance::Utterance()
 
 Utterance::Utterance(float **_data, int _size)
 {
-  data = _data;
-  size = _size;
+    data = _data;
+    size = _size;
 }
 
 
@@ -41,14 +41,15 @@ Utterance::Utterance(float **_data, int _size)
 
 Utterance::~Utterance()
 {
-  if (data != NULL)
-  {
-    for (int i=0; i<size; i++)
-      delete data[i];
-    delete data;
+    if (data != NULL) {
+        for (int i = 0; i < size; i++) {
+            delete data[i];
+        }
 
-    data = NULL;
-  }
+        delete data;
+
+        data = NULL;
+    }
 }
 
 
@@ -60,15 +61,16 @@ Utterance::~Utterance()
 
 void Utterance::set_data(float **_data, int _size)
 {
-  if (data != NULL)
-  {
-    for (int i = 0 ; i < size ; i++)
-      delete data[i];
-    delete data;
-  }
-  
-  data = _data;
-  size = _size;
+    if (data != NULL) {
+        for (int i = 0 ; i < size ; i++) {
+            delete data[i];
+        }
+
+        delete data;
+    }
+
+    data = _data;
+    size = _size;
 }
 
 
@@ -80,8 +82,9 @@ void Utterance::set_data(float **_data, int _size)
 
 void Utterance::set_data(int i, int j, float f)
 {
-  if (data != NULL)
-    data[i][j] = f;
+    if (data != NULL) {
+        data[i][j] = f;
+    }
 }
 
 
@@ -93,7 +96,7 @@ void Utterance::set_data(int i, int j, float f)
 
 float **Utterance::get_data()
 {
-  return data;
+    return data;
 }
 
 
@@ -105,7 +108,7 @@ float **Utterance::get_data()
 
 float Utterance::get_data(int i, int j) const
 {
-  return data[i][j];
+    return data[i][j];
 }
 
 
@@ -117,57 +120,65 @@ float Utterance::get_data(int i, int j) const
 
 void Utterance::set_size(int _size)
 {
-  if (data != NULL)
-  {
-    for (int i = 0 ; i < size ; i++)
-      delete data[i];
-    delete data;
+    if (data != NULL) {
+        for (int i = 0 ; i < size ; i++) {
+            delete data[i];
+        }
 
-    data = NULL;
-  }
-  size = 0;
+        delete data;
 
-  if (_size > 0)
-  {
-    data = new float* [_size];
-    for (int i = 0 ; i < _size ; i++)
-      data[i] = new float[16];
-    for (int i = 0 ; i < _size ; i++)
-      for (int j = 0 ; j<16 ; j++)
-	data[i][j] = 0;
-    size = _size;
-  }  
+        data = NULL;
+    }
+
+    size = 0;
+
+    if (_size > 0) {
+        data = new float* [_size];
+
+        for (int i = 0 ; i < _size ; i++) {
+            data[i] = new float[16];
+        }
+
+        for (int i = 0 ; i < _size ; i++)
+            for (int j = 0 ; j < 16 ; j++) {
+                data[i][j] = 0;
+            }
+
+        size = _size;
+    }
 }
 
-  
+
 /* *******************************************************************************
 **
-** operator[] 
+** operator[]
 **
 ******************************************************************************* */
 
 float *Utterance::operator[](int index) const
 {
-  return data[index];
+    return data[index];
 }
 
-  
+
 /* *******************************************************************************
 **
-** operator<< 
+** operator<<
 **
 ******************************************************************************* */
 
-QDataStream& operator<<(QDataStream& out, const Utterance *s)
+QDataStream &operator<<(QDataStream &out, const Utterance *s)
 {
-  int size = s->get_size();
+    int size = s->get_size();
 
-  out << size;
-  for (int i = 0 ; i < size ; i++)
-    for (int j = 0 ; j < 16 ; j++)
-      out << s->get_data(i,j);
-  
-  return out;
+    out << size;
+
+    for (int i = 0 ; i < size ; i++)
+        for (int j = 0 ; j < 16 ; j++) {
+            out << s->get_data(i, j);
+        }
+
+    return out;
 }
 
 
@@ -177,18 +188,18 @@ QDataStream& operator<<(QDataStream& out, const Utterance *s)
 **
 ******************************************************************************* */
 
-QDataStream& operator>>(QDataStream& in, Utterance *r)
+QDataStream &operator>>(QDataStream &in, Utterance *r)
 {
-  int size;
-  in >> size;
-  r->set_size(size);
-  for (int i = 0 ; i < size ; i++)
-    for (int j = 0 ; j < 16 ; j++)
-    {
-      float f;
-      in >> f;
-      r->set_data(i,j,f);
-    }
-  
-  return in;
+    int size;
+    in >> size;
+    r->set_size(size);
+
+    for (int i = 0 ; i < size ; i++)
+        for (int j = 0 ; j < 16 ; j++) {
+            float f;
+            in >> f;
+            r->set_data(i, j, f);
+        }
+
+    return in;
 }

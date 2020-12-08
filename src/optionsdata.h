@@ -24,8 +24,8 @@ public:
 
     OptionsData
     (
-        QWidget* parent = NULL,
-        const char* name = NULL
+        QWidget *parent = NULL,
+        const char *name = NULL
     );
 
     virtual ~OptionsData();
@@ -38,11 +38,11 @@ protected slots:
     virtual void my_accept();
 
 protected:
-    QLineEdit* rec_thresh;
-    QLineEdit* acc_sil_frames;
-    QLineEdit* adj_win_width;
-    QLineEdit* rej_thresh;
-    QLineEdit* min_dist;
+    QLineEdit *rec_thresh;
+    QLineEdit *acc_sil_frames;
+    QLineEdit *adj_win_width;
+    QLineEdit *rej_thresh;
+    QLineEdit *min_dist;
 
 };
 

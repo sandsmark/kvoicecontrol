@@ -65,7 +65,7 @@ private:
     /* file handle, reference count */
     int  fd, stat;
     QSocketNotifier *telmi;
-    
+
     /* internal functions */
     void get_capabilities();
     int  open_dev(int record);
@@ -81,17 +81,20 @@ public:
     ~Soundcard();
     char *driver();
     void setparams(struct SOUNDPARAMS *params);
-    int  get_blocksize() { return blocksize;};
+    int  get_blocksize()
+    {
+        return blocksize;
+    };
     int  start_record();
     int  start_playback();
     int  stop();
 
     int  has_channels();      /* # of channels (1=mono,2=stereo) */
-    int  has_format(int f);   /* check format availibity         */ 
+    int  has_format(int f);   /* check format availibity         */
 
 public slots:
     void sounddata(int);
-    
+
 signals:
 
     void senddata();

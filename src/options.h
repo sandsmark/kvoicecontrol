@@ -26,8 +26,8 @@ public:
 
     Options
     (
-        QWidget* parent = NULL,
-        const char* name = NULL
+        QWidget *parent = NULL,
+        const char *name = NULL
     );
 
     virtual ~Options();
@@ -41,16 +41,16 @@ public:
 
 signals:
 
-  void rec_level_thresh_changed(int threshold);
-  void acc_sil_frames_changed(int frames);
+    void rec_level_thresh_changed(int threshold);
+    void acc_sil_frames_changed(int frames);
 
-  void adj_win_width_changed(int width);
-  void reject_thresh_changed(float threshold);
-  void min_dist_changed(float min);
+    void adj_win_width_changed(int width);
+    void reject_thresh_changed(float threshold);
+    void min_dist_changed(float min);
 
 
 protected slots:
 
-    virtual void my_accept();    
+    virtual void my_accept();
 };
 #endif // Options_included
